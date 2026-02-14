@@ -1,10 +1,10 @@
-name: build-kernel-wildksu-susfs
+name: build-kernel-wildksu-stable-susfs
 on:
   workflow_dispatch:
 env:
   CLANG_DIR: clang-r584948b
 jobs:
-  build-wildksu-susfs:
+  build-wildksu-stable-susfs:
     runs-on: ubuntu-22.04
     steps:
       - name: Free Disk Space (Ubuntu)
