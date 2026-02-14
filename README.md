@@ -6,5 +6,5 @@
 
 <p>&nbsp;</p>
 
-Credits to Adithya R: [ghostrider_reborn](https://github.com/ghostrider-reborn)
+Credits to Adithya R: [Adithya R](https://github.com/adithya2306)
 [kernel-source](https://github.com/pa-gr/android_kernel_xiaomi_sm8450)
