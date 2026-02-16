@@ -1,10 +1,10 @@
-name: build-kernel-rksu
+name: build-kernel-rksu-susfs
 on:
   workflow_dispatch:
 env:
   CLANG_DIR: clang-r584948b
 jobs:
-  build-rksu:
+  build-rksu-susfs:
     runs-on: ubuntu-22.04
     steps:
       - name: Free Disk Space (Ubuntu)
@@ -55,6 +55,7 @@ jobs:
           cd kernel_platform/xiaomi/sm8450
           rmdir KernelSU
           curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s susfs-rksu-master
+      - name: Include personal changes
         run: |
           cp -rf aospa-gki-kernel-build/android_kernel_xiaomi_sm8450/. kernel_platform/xiaomi/sm8450
           cd kernel_platform/xiaomi/sm8450
@@ -99,7 +100,7 @@ jobs:
           find . -type d -empty -delete
       - name: Generate release tag
         id: tag
-        run: echo "release_tag=AOSPA_GKI_RKSU_$(date +'%Y.%m.%d')" >> "$GITHUB_OUTPUT"
+        run: echo "release_tag=AOSPA_GKI_RKSU_SUSFS_$(date +'%Y.%m.%d')" >> "$GITHUB_OUTPUT"
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
