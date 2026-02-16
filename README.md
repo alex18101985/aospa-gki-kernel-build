@@ -1,6 +1,6 @@
 # AOSPA GKI Kernel
 ## Differences from stock AOSPA kernel:
-- Added KernelSU (Rissu's fork)
+- Added KernelSU (SUSFS)
 - Added Westwood TCP (set as default)
 - Built with latest Clang
 
