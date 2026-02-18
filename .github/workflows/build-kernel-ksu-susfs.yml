@@ -1,10 +1,10 @@
-name: build-kernel-rksu-susfs
+name: build-kernel-ksu-susfs
 on:
   workflow_dispatch:
 env:
   CLANG_DIR: clang-r584948b
 jobs:
-  build-rksu-susfs:
+  build-ksu-susfs:
     runs-on: ubuntu-22.04
     steps:
       - name: Free Disk Space (Ubuntu)
@@ -28,7 +28,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5 
         with:
-          python-version: 'pypy3.10'
+          python-version: 'pypy3.11'
       - name: Setup build environment
         run: |
           sudo apt-get update
@@ -50,16 +50,18 @@ jobs:
               https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 .
           git sparse-checkout set --no-cone "/$CLANG_DIR"
           git checkout
-      - name: Include KernelSU (Rissu's fork)
+      - name: Include KernelSU
         run: |
           cd kernel_platform/xiaomi/sm8450
           rmdir KernelSU
-          curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s susfs-rksu-master
+          curl -LSs "https://raw.githubusercontent.com/alex18101985/KernelSU/main/kernel/setup.sh" | bash -s main
       - name: Include SUSFS
         run: |
           HOME="$(pwd)"
           cp -r susfs4ksu/kernel_patches/* kernel_platform/xiaomi/sm8450
-          cd kernel_platform/xiaomi/sm8450
+          cd kernel_platform/xiaomi/sm8450/KernelSU
+          patch -p1 < 10_enable_susfs_for_ksu.patch
+          cd ..
           patch -p1 < 50_add_susfs_in_gki-android12-5.10.patch
       - name: Include personal changes
         run: |
@@ -106,7 +108,7 @@ jobs:
           find . -type d -empty -delete
       - name: Generate release tag
         id: tag
-        run: echo "release_tag=AOSPA_GKI_RKSU_SUSFS_$(date +'%Y.%m.%d')" >> "$GITHUB_OUTPUT"
+        run: echo "release_tag=AOSPA_GKI_KSU_SUSFS_$(date +'%Y.%m.%d')" >> "$GITHUB_OUTPUT"
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
