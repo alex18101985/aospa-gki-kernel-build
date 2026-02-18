@@ -1,10 +1,10 @@
-name: build-kernel-resukisu-susfs
+name: build-kernel-rksu-susfs
 on:
   workflow_dispatch:
 env:
   CLANG_DIR: clang-r584948b
 jobs:
-  build-resukisu-susfs:
+  build-rksu-susfs:
     runs-on: ubuntu-22.04
     steps:
       - name: Free Disk Space (Ubuntu)
@@ -50,11 +50,11 @@ jobs:
               https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 .
           git sparse-checkout set --no-cone "/$CLANG_DIR"
           git checkout
-      - name: Include ReSukiSU
+      - name: Include KernelSU (Rissu's fork)
         run: |
           cd kernel_platform/xiaomi/sm8450
           rmdir KernelSU
-          curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" | bash
+          curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s susfs-rksu-master
       - name: Include SUSFS
         run: |
           HOME="$(pwd)"
@@ -106,7 +106,7 @@ jobs:
           find . -type d -empty -delete
       - name: Generate release tag
         id: tag
-        run: echo "release_tag=AOSPA_GKI_RESUKISU_SUSFS_$(date +'%Y.%m.%d')" >> "$GITHUB_OUTPUT"
+        run: echo "release_tag=AOSPA_GKI_RKSU_SUSFS_$(date +'%Y.%m.%d')" >> "$GITHUB_OUTPUT"
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
