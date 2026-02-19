@@ -44,10 +44,12 @@ jobs:
         run: |
           mkdir -p kernel_platform/clang
           cd kernel_platform/clang
+
+          : # git clone --filter & git sparse-checkout to only download required directory
           git clone -n --depth=1 --filter=tree:0 -b main-kernel --single-branch \
               https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 .
           git sparse-checkout set --no-cone "/$CLANG_DIR"
-          git checkout 477610d4d0d988e69dbc3fae4fe86bff3f07f2b5
+          git checkout
       - name: Include KernelSU
         run: |
           cd kernel_platform/xiaomi/sm8450
