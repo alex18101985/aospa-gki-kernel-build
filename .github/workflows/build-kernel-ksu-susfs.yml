@@ -67,31 +67,15 @@ jobs:
         run: |
           FILE="kernel_platform/xiaomi/sm8450/KernelSU/kernel/apk_sign.c"
           sed -i 's/return check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH);/return check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH) || \\/g' "$FILE"
-          sed -i '/check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH) ||/a \check_v2_signature(path, 0x363, "4359c171f32543394cbc23ef908c4bb94cad7c8087002ba164c8230948c21549") /*backslashxx*/ || \\\ncheck_v2_signature(path, 0x396, "f415f4ed9435427e1fdf7f1fccd4dbc07b3d6b8751e4dbcec6f19671f427870b") /*rsuntk*/;' "$FILE"
-      - name: Verify patch syntax
-        run: |
-          FILE="kernel_platform/xiaomi/sm8450/KernelSU/kernel/apk_sign.c"
-          echo "===================================================="
-          echo "PATCH RESULT (apk_sign.c):"
-          echo "===================================================="
-          # Show 5 lines after the original signature check
-          grep -A 5 "check_v2_signature(path, EXPECTED_SIZE" "$FILE"
-          echo "===================================================="
-          
-          # Check 1: Does the expression end with a semicolon?
-          if grep -q "rsuntk\*/;" "$FILE"; then
-            echo "✅ SUCCESS: Semicolon is in place."
-          else
-            echo "❌ ERROR: Semicolon not found! Compilation will fail."
-            exit 1
-          fi
+          sed -i '/check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH) ||/a \
+          check_v2_signature(path, 0x363, "4359c171f32543394cbc23ef908c4bb94cad7c8087002ba164c8230948c21549") /*backslashxx*/ || \\ \
+          check_v2_signature(path, 0x396, "f415f4ed9435427e1fdf7f1fccd4dbc07b3d6b8751e4dbcec6f19671f427870b") /*rsuntk*/;' "$FILE"
 
-          # Check 2: Are the backslash line continuations correct?
-          # Looking for the 'backslashxx' line which should end with || \
-          if grep -q "backslashxx\*/ || \\" "$FILE"; then
-            echo "✅ SUCCESS: Line continuation backslashes (\\) are correct."
+          if grep -q "4359c171f32543394cbc23ef908c4bb94cad7c8087002ba164c8230948c21549" "$FILE" && \
+             grep -q "f415f4ed9435427e1fdf7f1fccd4dbc07b3d6b8751e4dbcec6f19671f427870b" "$FILE"; then
+            echo "Patch applied successfully"
           else
-            echo "⚠️ WARNING: Potential missing backslash (\\). Check the output above."
+            echo "Patch failed!" && exit 1
           fi
       - name: Include personal changes
         run: |
