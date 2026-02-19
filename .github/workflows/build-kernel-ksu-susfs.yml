@@ -1,8 +1,6 @@
 name: build-kernel-ksu-susfs
 on:
   workflow_dispatch:
-env:
-  CLANG_DIR: clang-r510928
 jobs:
   build-ksu-susfs:
     runs-on: ubuntu-22.04
@@ -42,12 +40,16 @@ jobs:
           mkdir -p kernel_platform/device/xiaomi/marble-kernel/dtbs
       - name: Setup clang
         run: |
+          CLANG_DIR="clang-r510928"
           mkdir -p kernel_platform/clang
           cd kernel_platform/clang
-          curl -LSs "https://android.googlesource.com" -o clang.tar.gz
-          tar -xzf clang.tar.gz
-          rm clang.tar.gz
+          git init
+          git remote add origin https://android.googlesource.com
+          git fetch --depth=1 origin 477610d4d0d988e69dbc3fae4fe86bff3f07f1fccd4dbc07b3d6b8751e4dbcec6f19671f427870b
+          git checkout FETCH_HEAD
           chmod +x bin/*
+          echo "CLANG_DIR=$CLANG_DIR" >> $GITHUB_ENV
+          echo "$(pwd)/bin" >> $GITHUB_PATH
       - name: Include KernelSU
         run: |
           cd kernel_platform/xiaomi/sm8450
