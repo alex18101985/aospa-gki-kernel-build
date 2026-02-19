@@ -2,7 +2,7 @@ name: build-kernel-ksu-susfs
 on:
   workflow_dispatch:
 env:
-  CLANG_DIR: clang-r584948b
+  CLANG_DIR: clang-r510928
 jobs:
   build-ksu-susfs:
     runs-on: ubuntu-22.04
@@ -44,12 +44,10 @@ jobs:
         run: |
           mkdir -p kernel_platform/clang
           cd kernel_platform/clang
-
-          : # git clone --filter & git sparse-checkout to only download required directory
-          git clone -n --depth=1 --filter=tree:0 -b main-kernel --single-branch \
-              https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 .
-          git sparse-checkout set --no-cone "/$CLANG_DIR"
-          git checkout
+          curl -LSs "https://android.googlesource.com" -o clang.tar.gz
+          tar -xzf clang.tar.gz
+          rm clang.tar.gz
+          chmod +x bin/*
       - name: Include KernelSU
         run: |
           cd kernel_platform/xiaomi/sm8450
