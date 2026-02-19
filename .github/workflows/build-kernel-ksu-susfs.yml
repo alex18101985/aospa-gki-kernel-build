@@ -5,7 +5,7 @@ env:
   CLANG_DIR: clang-r584948b
 jobs:
   build-ksu-susfs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Free Disk Space (Ubuntu)
         if: ${{ true }} # Set to true if space insufficient
@@ -66,16 +66,19 @@ jobs:
       - name: Include other KernelSU managers signatures
         run: |
           FILE="kernel_platform/xiaomi/sm8450/KernelSU/kernel/apk_sign.c"
-          sed -i 's/return check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH);/return check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH) || \\/g' "$FILE"
-          sed -i '/check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH) ||/a \
-          check_v2_signature(path, 0x363, "4359c171f32543394cbc23ef908c4bb94cad7c8087002ba164c8230948c21549") /*backslashxx*/ || \\ \
-          check_v2_signature(path, 0x396, "f415f4ed9435427e1fdf7f1fccd4dbc07b3d6b8751e4dbcec6f19671f427870b") /*rsuntk*/;' "$FILE"
+          
+          sed -i '/[[:space:]]*return check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH);/c \
+              return check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH) \
+                  || check_v2_signature(path, 0x363, "4359c171f32543394cbc23ef908c4bb94cad7c8087002ba164c8230948c21549") \
+                  || check_v2_signature(path, 0x396, "f415f4ed9435427e1fdf7f1fccd4dbc07b3d6b8751e4dbcec6f19671f427870b");' "$FILE"
 
-          if grep -q "4359c171f32543394cbc23ef908c4bb94cad7c8087002ba164c8230948c21549" "$FILE"; then
-            echo "Patch success. Preview:"
-            grep -A 3 "return check_v2_signature" "$FILE"
+          if grep -q "0x396" "$FILE"; then
+            echo "--- Full Function Preview ---"
+            grep -B 3 -A 5 "check_v2_signature" "$FILE"
+            echo "-----------------------------"
           else
-            echo "Patch failed!" && exit 1
+            cat "$FILE"
+            exit 1
           fi
       - name: Include personal changes
         run: |
