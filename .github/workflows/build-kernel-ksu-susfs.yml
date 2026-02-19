@@ -9,12 +9,12 @@ jobs:
         if: ${{ true }} # Set to true if space insufficient
         uses: jlumbroso/free-disk-space@main
         with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
+          tool-cache: false
+          android: false
+          dotnet: false
+          haskell: false
+          large-packages: false
+          docker-images: false
           swap-storage: false
       - name: Set Swap Space
         uses: pierotofy/set-swap-space@master
@@ -38,17 +38,14 @@ jobs:
           repo init -u https://github.com/alex18101985/aospa-gki-kernel-build -b "$(git -C aospa-gki-kernel-build branch --show-current)" -m manifest.xml --depth=1
           repo sync
           mkdir -p kernel_platform/device/xiaomi/marble-kernel/dtbs
-      - name: Setup clang
+      - name: Setup Clang (r510928)
         run: |
-          CLANG_DIR="clang-r510928"
           mkdir -p kernel_platform/clang
           cd kernel_platform/clang
           git init
-          git remote add origin https://android.googlesource.com
-          git fetch --depth=1 origin 477610d4d0d988e69dbc3fae4fe86bff3f07f1fccd4dbc07b3d6b8751e4dbcec6f19671f427870b
-          git checkout FETCH_HEAD
-          chmod +x bin/*
-          echo "CLANG_DIR=$CLANG_DIR" >> $GITHUB_ENV
+          git remote add origin https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86
+          git fetch --depth=1 origin 477610d4d0d988e69dbc3fae4fe86bff3f07f2b5
+          git checkout 477610d4d0d988e69dbc3fae4fe86bff3f07f2b5
           echo "$(pwd)/bin" >> $GITHUB_PATH
       - name: Include KernelSU
         run: |
