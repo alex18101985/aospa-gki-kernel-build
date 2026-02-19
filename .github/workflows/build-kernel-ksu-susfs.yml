@@ -5,18 +5,18 @@ env:
   CLANG_DIR: clang-r584948b
 jobs:
   build-ksu-susfs:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Free Disk Space (Ubuntu)
         if: ${{ true }} # Set to true if space insufficient
         uses: jlumbroso/free-disk-space@main
         with:
-          tool-cache: false
-          android: false
-          dotnet: false
-          haskell: false
-          large-packages: false
-          docker-images: false
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
           swap-storage: false
       - name: Set Swap Space
         uses: pierotofy/set-swap-space@master
