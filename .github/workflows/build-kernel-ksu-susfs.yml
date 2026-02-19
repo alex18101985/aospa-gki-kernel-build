@@ -5,7 +5,7 @@ env:
   CLANG_DIR: clang-r584948b
 jobs:
   build-ksu-susfs:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04.4
     steps:
       - name: Free Disk Space (Ubuntu)
         if: ${{ true }} # Set to true if space insufficient
@@ -54,7 +54,7 @@ jobs:
         run: |
           cd kernel_platform/xiaomi/sm8450
           rmdir KernelSU
-          curl -LSs "https://raw.githubusercontent.com/alex18101985/KernelSU/main/kernel/setup.sh" | bash -s main
+          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
       - name: Include SUSFS
         run: |
           HOME="$(pwd)"
@@ -63,6 +63,12 @@ jobs:
           patch -p1 < 10_enable_susfs_for_ksu.patch
           cd ..
           patch -p1 < 50_add_susfs_in_gki-android12-5.10.patch
+      - name: Include other KSU manager signatures
+        run: |
+          sed -i '/return (check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH) ||/a\
+              check_v2_signature(path, 0x363, "4359c171f32543394cbc23ef908c4bb94cad7c8087002ba164c8230948c21549") /*backslashxx*/ || \
+              check_v2_signature(path, 0x396, "f415f4ed9435427e1fdf7f1fccd4dbc07b3d6b8751e4dbcec6f19671f427870b") /*rsuntk*/ || \
+              \' kernel_platform/xiaomi/sm8450/KernelSU/kernel/apk_sign.c
       - name: Include personal changes
         run: |
           cp -rf aospa-gki-kernel-build/android_kernel_xiaomi_sm8450/. kernel_platform/xiaomi/sm8450
