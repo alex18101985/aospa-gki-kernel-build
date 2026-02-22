@@ -55,35 +55,6 @@ jobs:
               https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 .
           git sparse-checkout set --no-cone "/$CLANG_DIR"
           git checkout
-      - name: Include KernelSU
-        run: |
-          cd kernel_platform/xiaomi/sm8450
-          rmdir KernelSU
-          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
-      - name: Include SUSFS
-        run: |
-          HOME="$(pwd)"
-          cp -r susfs4ksu/kernel_patches/* kernel_platform/xiaomi/sm8450
-          cd kernel_platform/xiaomi/sm8450/KernelSU
-          patch -p1 < 10_enable_susfs_for_ksu.patch
-          cd ..
-          patch -p1 < 50_add_susfs_in_gki-android12-5.10.patch
-      - name: Include unofficial KernelSU manager signature
-        run: |
-          FILE="kernel_platform/xiaomi/sm8450/KernelSU/kernel/apk_sign.c"
-          
-          sed -i '/[[:space:]]*return check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH);/c \
-              return check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH) \
-                  || check_v2_signature(path, 0x363, "4359c171f32543394cbc23ef908c4bb94cad7c8087002ba164c8230948c21549");' "$FILE"
-
-          if grep -q "0x363" "$FILE"; then
-            echo "--- Full Function Preview ---"
-            grep -B 3 -A 5 "check_v2_signature" "$FILE"
-            echo "-----------------------------"
-          else
-            cat "$FILE"
-            exit 1
-          fi
       - name: Include personal changes
         run: |
           cp -rf aospa-gki-kernel-build/android_kernel_xiaomi_sm8450/. kernel_platform/xiaomi/sm8450
@@ -101,16 +72,135 @@ jobs:
           sed -i 's/drivers/sm8450\/drivers/g' clang.patch
           sed -i 's/techpack\/display/sm8450-modules\/qcom\/opensource\/display-drivers/g' clang.patch
           patch -p1 < clang.patch
+      - name: Include KernelSU
+        run: |
+          cd kernel_platform/xiaomi/sm8450
+          rm -rf KernelSU
+          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
+      - name: Register KernelSU driver
+        run: |
+          cd kernel_platform/xiaomi/sm8450
+          grep -q "KernelSU" drivers/Makefile || \
+          echo 'obj-$(CONFIG_KSU) += KernelSU/' >> drivers/Makefile
+      - name: Configure KernelSU LKM clean
+        run: |
+          cd kernel_platform/xiaomi/sm8450
+          DEF=arch/arm64/configs/vendor/gki_defconfig
 
+          # удалить старые
+          sed -i '/CONFIG_KSU/d' $DEF
+          sed -i '/CONFIG_MODULES/d' $DEF
+          sed -i '/CONFIG_MODULE_UNLOAD/d' $DEF
+          sed -i '/CONFIG_KALLSYMS/d' $DEF
+          sed -i '/CONFIG_MODULE_SIG/d' $DEF
+
+          # добавить чисто
+          echo "CONFIG_MODULES=y" >> $DEF
+          echo "CONFIG_MODULE_UNLOAD=y" >> $DEF
+          echo "CONFIG_KALLSYMS=y" >> $DEF
+          echo "CONFIG_KALLSYMS_ALL=y" >> $DEF
+          echo "CONFIG_KPROBES=y" >> $DEF
+          echo "CONFIG_HAVE_KPROBES=y" >> $DEF
+          echo "CONFIG_KPROBE_EVENTS=y" >> $DEF
+          echo "CONFIG_MODULE_FORCE_LOAD=y" >> $DEF
+          echo "CONFIG_MODULE_FORCE_UNLOAD=y" >> $DEF
+          echo "CONFIG_KSU=m" >> $DEF
+          echo "CONFIG_KSU_DEBUG=n" >> $DEF
+          echo "CONFIG_MODULE_SIG=y" >> $DEF
+          echo "CONFIG_MODULE_SIG_ALL=n" >> $DEF
+          echo "CONFIG_MODULE_SIG_SHA512=y" >> $DEF
+          echo "CONFIG_FUSE_FS=y" >> $DEF
+          echo "CONFIG_OVERLAY_FS=y" >> $DEF
+          echo "CONFIG_TMPFS=y" >> $DEF
+          echo "CONFIG_KALLSYMS_BASE_RELATIVE=y" >> $DEF
+          echo "CONFIG_PROC_FS=y" >> $DEF
+          echo "CONFIG_SYSFS=y" >> $DEF
+      - name: Clone SUSFS source
+        run: |
+          git clone --depth=1 https://gitlab.com/simonpunk/susfs4ksu.git susfs4ksu
+      - name: Register SUSFS driver
+        run: |
+          cd kernel_platform/xiaomi/sm8450
+
+          mkdir -p fs/susfs
+
+          # правильный путь
+          cp -r ../../../../susfs4ksu/kernel/fs/* fs/susfs/
+
+          grep -q "susfs" fs/Makefile || \
+          echo -e "\nobj-\$(CONFIG_SUSFS) += susfs/" >> fs/Makefile
+      - name: Enable SUSFS LKM
+        run: |
+          cd kernel_platform/xiaomi/sm8450
+          DEF=arch/arm64/configs/vendor/gki_defconfig
+
+          sed -i '/CONFIG_SUSFS/d' $DEF
+          echo "CONFIG_SUSFS=m" >> $DEF
       - name: Build kernel
         run: |
           cd kernel_platform/xiaomi/sm8450
           export MAKEFLAGS="-j$(nproc)"
+          export LLVM=1
+          export LLVM_IAS=1
+          export CC=clang
+          export LD=ld.lld
+          export PATH=$PWD/../../clang/${CLANG_DIR}/bin:$PATH
           ./build.sh marble
+      - name: Extract kernel version
+        run: |
+           strings kernel_platform/device/xiaomi/marble-kernel/Image | grep "Linux version" | head -n1
+      - name: Show built modules
+        run: |
+          find kernel_platform -name "*.ko"
+      - name: Check final config
+        run: |
+          find kernel_platform -name .config
+          grep CONFIG_KSU $(find kernel_platform -name .config | head -n1)
+          grep CONFIG_SUSFS $(find kernel_platform -name .config | head -n1)
+      - name: Locate KernelSU & SUSFS modules
+        id: modules
+        run: |
+          KSU=$(find kernel_platform -name kernelsu.ko | head -n 1)
+          SUS=$(find kernel_platform -name susfs.ko | head -n 1)
+
+          echo "ksu=$KSU" >> $GITHUB_OUTPUT
+          echo "sus=$SUS" >> $GITHUB_OUTPUT
+
+          file $KSU
+          file $SUS
+      - name: Show module info
+        run: |
+          modinfo ${{ steps.modules.outputs.ksu }} || true
+          modinfo ${{ steps.modules.outputs.sus }} || true
+      - name: Check vermagic
+        run: |
+          modinfo ${{ steps.modules.outputs.ksu }} | grep vermagic
+      - name: Verify vermagic match
+        run: |
+          KERNEL_VER=$(strings kernel_platform/device/xiaomi/marble-kernel/Image | grep "Linux version" | head -n1 | awk '{print $3}')
+          MOD_VER=$(modinfo ${{ steps.modules.outputs.ksu }} | awk '/vermagic/ {print $2}' | cut -d'-' -f1)
+
+          echo "Kernel: $KERNEL_VER"
+          echo "Module: $MOD_VER"
+
+          if [ "$KERNEL_VER" != "$MOD_VER" ]; then
+          echo "Vermagic mismatch!"
+          exit 1
+          fi
+      - name: Fail if modules missing
+        run: |
+          [ -f "${{ steps.modules.outputs.ksu }}" ] || exit 1
+          [ -f "${{ steps.modules.outputs.sus }}" ] || exit 1
+      - name: Verify LKM mode
+        run: |
+          strings ${{ steps.modules.outputs.ksu }} | grep KernelSU
       - name: Zip output
         run: |
           git clone --depth=1 -b marble https://github.com/alex18101985/AnyKernel3.git AnyKernel3-marble
           cd AnyKernel3-marble
+          mkdir -p modules
+          cp ${{ steps.modules.outputs.ksu }} modules/kernelsu.ko
+          cp ${{ steps.modules.outputs.sus }} modules/susfs.ko
           cp ../kernel_platform/device/xiaomi/marble-kernel/Image .
           rm -r .git README.md
           find . -type f -name 'placeholder' -delete
