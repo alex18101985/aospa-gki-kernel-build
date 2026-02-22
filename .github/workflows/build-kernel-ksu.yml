@@ -75,10 +75,11 @@ jobs:
           rm -rf drivers/kernelsu
 
           # клонировать KernelSU
-          git clone --depth=1 https://github.com/tiann/KernelSU.git drivers/kernelsu
+          git init drivers/kernelsu
           cd drivers/kernelsu
+          git remote add origin https://github.com/tiann/KernelSU.git
           git fetch --depth=1 origin 92aff05
-          git checkout 92aff05
+          git checkout FETCH_HEAD
           cd ../..
 
           test -f drivers/kernelsu/Kconfig || (echo "Kconfig missing" && exit 1)
