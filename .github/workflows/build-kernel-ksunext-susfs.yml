@@ -62,11 +62,6 @@ jobs:
       - name: Build kernel
         run: |
           cd kernel_platform/xiaomi/sm8450
-          
-          cat > .build.rc <<EOF
-          SRC_ROOT=$PWD/../../..
-          EOF
-          
           ./build.sh marble
       - name: Zip output
         run: |
