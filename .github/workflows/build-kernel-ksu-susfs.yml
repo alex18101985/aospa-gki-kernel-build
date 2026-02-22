@@ -77,6 +77,9 @@ jobs:
           cd kernel_platform/xiaomi/sm8450
           rm -rf KernelSU
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
+          # remove inline hooks
+          sed -i '/CONFIG_KSU=y/d' arch/arm64/configs/vendor/gki_defconfig
+          sed -i '/CONFIG_KSU_INLINE/d' arch/arm64/configs/vendor/gki_defconfig
       - name: Register KernelSU driver
         run: |
           cd kernel_platform/xiaomi/sm8450
@@ -99,22 +102,30 @@ jobs:
           echo "CONFIG_MODULE_UNLOAD=y" >> $DEF
           echo "CONFIG_KALLSYMS=y" >> $DEF
           echo "CONFIG_KALLSYMS_ALL=y" >> $DEF
+          echo "CONFIG_KALLSYMS_BASE_RELATIVE=y" >> $DEF
           echo "CONFIG_KPROBES=y" >> $DEF
           echo "CONFIG_HAVE_KPROBES=y" >> $DEF
           echo "CONFIG_KPROBE_EVENTS=y" >> $DEF
+          echo "CONFIG_KPROBES_ON_FTRACE=y" >> $DEF
           echo "CONFIG_MODULE_FORCE_LOAD=y" >> $DEF
           echo "CONFIG_MODULE_FORCE_UNLOAD=y" >> $DEF
           echo "CONFIG_KSU=m" >> $DEF
           echo "CONFIG_KSU_DEBUG=n" >> $DEF
-          echo "CONFIG_MODULE_SIG=y" >> $DEF
-          echo "CONFIG_MODULE_SIG_ALL=n" >> $DEF
-          echo "CONFIG_MODULE_SIG_SHA512=y" >> $DEF
+          echo "CONFIG_MODULE_SIG=n" >> $DEF
           echo "CONFIG_FUSE_FS=y" >> $DEF
           echo "CONFIG_OVERLAY_FS=y" >> $DEF
           echo "CONFIG_TMPFS=y" >> $DEF
-          echo "CONFIG_KALLSYMS_BASE_RELATIVE=y" >> $DEF
           echo "CONFIG_PROC_FS=y" >> $DEF
           echo "CONFIG_SYSFS=y" >> $DEF
+          echo "CONFIG_FTRACE=y" >> $DEF
+          echo "CONFIG_FUNCTION_TRACER=y" >> $DEF
+          echo "CONFIG_DEBUG_KERNEL=n" >> $DEF
+          echo "CONFIG_DEBUG_INFO=n" >> $DEF
+          echo "CONFIG_NET=y" >> $DEF
+          echo "CONFIG_SECURITY=y" >> $DEF
+          echo "CONFIG_SECURITYFS=y" >> $DEF
+          echo "CONFIG_NETFILTER=y" >> $DEF
+          echo "CONFIG_INET=y" >> $DEF
       - name: Clone SUSFS source
         run: |
           git clone --depth=1 https://gitlab.com/simonpunk/susfs4ksu.git susfs4ksu
@@ -140,8 +151,8 @@ jobs:
         run: |
           cd kernel_platform/xiaomi/sm8450
           export MAKEFLAGS="-j$(nproc)"
-          export LLVM=1
-          export LLVM_IAS=1
+          export ARCH=arm64
+          export SUBARCH=arm64
           export CC=clang
           export LD=ld.lld
           export PATH=$PWD/../../clang/${CLANG_DIR}/bin:$PATH
@@ -168,25 +179,25 @@ jobs:
 
           file $KSU
           file $SUS
-      - name: Show module info
+      - name: Check module sizes
         run: |
-          modinfo ${{ steps.modules.outputs.ksu }} || true
-          modinfo ${{ steps.modules.outputs.sus }} || true
+          ls -lh ${{ steps.modules.outputs.ksu }}
+          ls -lh ${{ steps.modules.outputs.sus }}
       - name: Check vermagic
         run: |
           modinfo ${{ steps.modules.outputs.ksu }} | grep vermagic
       - name: Verify vermagic match
         run: |
           KERNEL_VER=$(strings kernel_platform/device/xiaomi/marble-kernel/Image | grep "Linux version" | head -n1 | awk '{print $3}')
-          MOD_VER=$(modinfo ${{ steps.modules.outputs.ksu }} | awk '/vermagic/ {print $2}' | cut -d'-' -f1)
+          MOD_VER=$(modinfo ${{ steps.modules.outputs.ksu }} | awk '/vermagic/ {print $2}')
 
           echo "Kernel: $KERNEL_VER"
           echo "Module: $MOD_VER"
 
-          if [ "$KERNEL_VER" != "$MOD_VER" ]; then
+          echo "$MOD_VER" | grep "$KERNEL_VER" || {
           echo "Vermagic mismatch!"
           exit 1
-          fi
+          }
       - name: Fail if modules missing
         run: |
           [ -f "${{ steps.modules.outputs.ksu }}" ] || exit 1
@@ -194,6 +205,9 @@ jobs:
       - name: Verify LKM mode
         run: |
           strings ${{ steps.modules.outputs.ksu }} | grep KernelSU
+      - name: Ensure KernelSU is module
+        run: |
+          grep CONFIG_KSU= $(find kernel_platform -name .config | head -n1)
       - name: Zip output
         run: |
           git clone --depth=1 -b marble https://github.com/alex18101985/AnyKernel3.git AnyKernel3-marble
