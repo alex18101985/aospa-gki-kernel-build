@@ -5,7 +5,7 @@ env:
   CLANG_DIR: clang-r584948b
 jobs:
   build-ksu-susfs:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Free Disk Space (Ubuntu)
         if: ${{ true }} # Set to true if space insufficient
@@ -67,11 +67,26 @@ jobs:
           sed -i 's/drivers/sm8450\/drivers/g' clang.patch
           sed -i 's/techpack\/display/sm8450-modules\/qcom\/opensource\/display-drivers/g' clang.patch
           patch -p1 < clang.patch
-      - name: Include KernelSU
+      - name: Include KernelSU (fixed commit)
         run: |
           cd kernel_platform/xiaomi/sm8450
-          rmdir KernelSU
-          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
+
+          # очистить старое
+          rm -rf drivers/kernelsu drivers/KernelSU KernelSU
+
+          # клонировать KernelSU
+          git clone https://github.com/tiann/KernelSU.git drivers/kernelsu
+          cd drivers/kernelsu
+
+          # зафиксировать нужную версию
+          git checkout 92aff05
+
+          cd ../../
+
+          # регистрация в Makefile
+          if ! grep -q "obj-\$(CONFIG_KSU).*kernelsu" drivers/Makefile; then
+          echo 'obj-$(CONFIG_KSU) += kernelsu/' >> drivers/Makefile
+          fi
       - name: Verify KernelSU
         run: |
           grep -i ksu kernel_platform/xiaomi/sm8450/drivers/Makefile || true
@@ -95,44 +110,6 @@ jobs:
 
           # LKM режим
           echo "CONFIG_KSU=m" >> $DEF
-      - name: Clone SUSFS source
-        run: |
-          git clone --depth=1 -b gki-android12-5.10 https://gitlab.com/simonpunk/susfs4ksu.git $GITHUB_WORKSPACE/susfs4ksu
-      - name: Register SUSFS LKM
-        run: |
-          cd kernel_platform/xiaomi/sm8450
-
-          rm -rf fs/susfs
-          mkdir -p fs/susfs
-
-          if [ -d "$GITHUB_WORKSPACE/susfs4ksu/kernel/fs" ]; then
-          cp -r $GITHUB_WORKSPACE/susfs4ksu/kernel/fs/* fs/susfs/
-          else
-          cp -r $GITHUB_WORKSPACE/susfs4ksu/kernel_patches/fs/* fs/susfs/
-          fi
-
-          mkdir -p include/linux
-          cp $GITHUB_WORKSPACE/susfs4ksu/kernel_patches/include/linux/susfs.h include/linux/ || true
-
-          grep -q "susfs" fs/Makefile || \
-          echo 'obj-$(CONFIG_SUSFS) += susfs/' >> fs/Makefile
-      - name: Register SUSFS Kconfig
-        run: |
-          cd kernel_platform/xiaomi/sm8450
-
-          # убедиться что Kconfig есть
-          if [ -f fs/susfs/Kconfig ]; then
-          grep -q "susfs/Kconfig" fs/Kconfig || \
-          echo 'source "fs/susfs/Kconfig"' >> fs/Kconfig
-          else
-          echo "ERROR: fs/susfs/Kconfig not found"
-          exit 1
-          fi
-      - name: Enable SUSFS
-        run: |
-          DEF=kernel_platform/xiaomi/sm8450/arch/arm64/configs/gki_defconfig
-          sed -i '/CONFIG_SUSFS/d' $DEF
-          echo "CONFIG_SUSFS=m" >> $DEF
       - name: Debug drivers
         run: |
           ls kernel_platform/xiaomi/sm8450/drivers
@@ -140,7 +117,6 @@ jobs:
       - name: Debug configs
         run: |
           grep KSU kernel_platform/xiaomi/sm8450/arch/arm64/configs/gki_defconfig
-          grep SUSFS kernel_platform/xiaomi/sm8450/arch/arm64/configs/gki_defconfig
       - name: Build kernel
         run: |
           cd kernel_platform/xiaomi/sm8450
@@ -159,22 +135,15 @@ jobs:
           echo "Config: $CFG"
 
           grep CONFIG_KSU $CFG || true
-          grep CONFIG_SUSFS $CFG || true
-      - name: Locate KernelSU & SUSFS modules
+      - name: Locate KernelSU modules
         id: modules
         run: |
           KSU=$(find kernel_platform -name kernelsu.ko | head -n 1)
-          SUS=$(find kernel_platform -name susfs.ko | head -n 1)
-
           echo "ksu=$KSU" >> $GITHUB_OUTPUT
-          echo "sus=$SUS" >> $GITHUB_OUTPUT
-
           file $KSU
-          file $SUS
       - name: Check module sizes
         run: |
           ls -lh ${{ steps.modules.outputs.ksu }}
-          ls -lh ${{ steps.modules.outputs.sus }}
       - name: Check vermagic
         run: |
           modinfo ${{ steps.modules.outputs.ksu }} | grep vermagic
@@ -193,7 +162,6 @@ jobs:
       - name: Fail if modules missing
         run: |
           [ -f "${{ steps.modules.outputs.ksu }}" ] || exit 1
-          [ -f "${{ steps.modules.outputs.sus }}" ] || exit 1
       - name: Verify LKM mode
         run: |
           strings ${{ steps.modules.outputs.ksu }} | grep KernelSU
@@ -206,7 +174,6 @@ jobs:
           cd AnyKernel3-marble
           mkdir -p modules
           cp ${{ steps.modules.outputs.ksu }} modules/kernelsu.ko
-          cp ${{ steps.modules.outputs.sus }} modules/susfs.ko
           cp ../kernel_platform/device/xiaomi/marble-kernel/Image .
           rm -r .git README.md
           find . -type f -name 'placeholder' -delete
@@ -226,7 +193,7 @@ jobs:
           find . -type d -empty -delete
       - name: Generate release tag
         id: tag
-        run: echo "release_tag=AOSPA_GKI_KSU_SUSFS_$(date +'%Y.%m.%d-%H%M')" >> "$GITHUB_OUTPUT"
+        run: echo "release_tag=AOSPA_GKI_KSU_LKM_$(date +'%Y.%m.%d-%H%M')" >> "$GITHUB_OUTPUT"
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
