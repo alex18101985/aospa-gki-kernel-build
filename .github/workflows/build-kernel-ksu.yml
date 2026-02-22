@@ -43,23 +43,29 @@ jobs:
       - name: Cache Clang
         uses: actions/cache@v4
         with:
-         path: kernel_platform/clang
-         key: clang-${{ env.CLANG_DIR }}
-         restore-keys: |
-           clang-
+          path: kernel_platform/clang/${{ env.CLANG_DIR }}
+          key: clang-${{ env.CLANG_DIR }}
       - name: Setup Clang
         run: |
-         mkdir -p kernel_platform/clang
-         cd kernel_platform/clang
+          mkdir -p kernel_platform/clang
+          cd kernel_platform/clang
 
-         if [ ! -d "${CLANG_DIR}" ]; then
-         git clone -n --depth=1 --filter=tree:0 -b main-kernel --single-branch \
-         https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 .
-         git sparse-checkout set --no-cone "/$CLANG_DIR"
-         git checkout
-         else
-         echo "Using cached Clang"
-         fi
+          if [ ! -d "${CLANG_DIR}/bin" ]; then
+          echo "Downloading Clang ${CLANG_DIR}"
+
+          git clone -n --depth=1 --filter=tree:0 -b main-kernel --single-branch \
+          https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 temp
+
+          cd temp
+          git sparse-checkout set --no-cone "/${CLANG_DIR}"
+          git checkout
+
+          mv ${CLANG_DIR} ..
+          cd ..
+          rm -rf temp
+          else
+          echo "Using cached Clang"
+          fi
       - name: Include personal changes
         run: |
           cp -rf aospa-gki-kernel-build/android_kernel_xiaomi_sm8450/. kernel_platform/xiaomi/sm8450
