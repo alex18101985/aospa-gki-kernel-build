@@ -115,7 +115,19 @@ jobs:
           cp $GITHUB_WORKSPACE/susfs4ksu/kernel_patches/include/linux/susfs.h include/linux/ || true
 
           grep -q "susfs" fs/Makefile || \
-          echo -e "\nobj-\$(CONFIG_SUSFS) += susfs/" >> fs/Makefile
+          echo 'obj-$(CONFIG_SUSFS) += susfs/' >> fs/Makefile
+      - name: Register SUSFS Kconfig
+        run: |
+          cd kernel_platform/xiaomi/sm8450
+
+          # убедиться что Kconfig есть
+          if [ -f fs/susfs/Kconfig ]; then
+          grep -q "susfs/Kconfig" fs/Kconfig || \
+          echo 'source "fs/susfs/Kconfig"' >> fs/Kconfig
+          else
+          echo "ERROR: fs/susfs/Kconfig not found"
+          exit 1
+          fi
       - name: Enable SUSFS
         run: |
           DEF=kernel_platform/xiaomi/sm8450/arch/arm64/configs/gki_defconfig
@@ -143,9 +155,11 @@ jobs:
           find kernel_platform -name "*.ko"
       - name: Check final config
         run: |
-          find kernel_platform -name .config
-          grep CONFIG_KSU $(find kernel_platform -name .config | head -n1)
-          grep CONFIG_SUSFS $(find kernel_platform -name .config | head -n1)
+          CFG=$(find kernel_platform -name .config | head -n1)
+          echo "Config: $CFG"
+
+          grep CONFIG_KSU $CFG || true
+          grep CONFIG_SUSFS $CFG || true
       - name: Locate KernelSU & SUSFS modules
         id: modules
         run: |
