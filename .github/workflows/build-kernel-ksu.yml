@@ -44,7 +44,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: kernel_platform/clang
-          key: clang-${{ env.CLANG_DIR }}
+          key: ${{ env.CLANG_DIR }}
           restore-keys: |
            clang-
       - name: Setup Clang
