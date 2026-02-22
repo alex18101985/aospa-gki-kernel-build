@@ -99,39 +99,17 @@ jobs:
           echo "CONFIG_KALLSYMS_ALL=y" >> $DEF
           echo "CONFIG_KALLSYMS_BASE_RELATIVE=y" >> $DEF
           echo "CONFIG_KPROBES=y" >> $DEF
-          echo "CONFIG_HAVE_KPROBES=y" >> $DEF
-          echo "CONFIG_KPROBE_EVENTS=y" >> $DEF
-          echo "CONFIG_KPROBES_ON_FTRACE=y" >> $DEF
-          echo "CONFIG_MODULE_FORCE_LOAD=y" >> $DEF
-          echo "CONFIG_MODULE_FORCE_UNLOAD=y" >> $DEF
           echo "CONFIG_KSU=m" >> $DEF
-          echo "CONFIG_KSU_DEBUG=n" >> $DEF
           echo "CONFIG_MODULE_SIG=n" >> $DEF
-          echo "CONFIG_FUSE_FS=y" >> $DEF
-          echo "CONFIG_OVERLAY_FS=y" >> $DEF
-          echo "CONFIG_TMPFS=y" >> $DEF
-          echo "CONFIG_PROC_FS=y" >> $DEF
-          echo "CONFIG_SYSFS=y" >> $DEF
-          echo "CONFIG_FTRACE=y" >> $DEF
-          echo "CONFIG_FUNCTION_TRACER=y" >> $DEF
-          echo "CONFIG_DEBUG_KERNEL=n" >> $DEF
-          echo "CONFIG_DEBUG_INFO=n" >> $DEF
-          echo "CONFIG_NET=y" >> $DEF
-          echo "CONFIG_SECURITY=y" >> $DEF
-          echo "CONFIG_SECURITYFS=y" >> $DEF
-          echo "CONFIG_NETFILTER=y" >> $DEF
-          echo "CONFIG_INET=y" >> $DEF
       - name: Clone SUSFS source
         run: |
-          git clone --depth=1 https://gitlab.com/simonpunk/susfs4ksu.git susfs4ksu
+          git clone --depth=1 -b gki-android12-5.10 https://gitlab.com/simonpunk/susfs4ksu.git $GITHUB_WORKSPACE/susfs4ksu
       - name: Register SUSFS driver
         run: |
           cd kernel_platform/xiaomi/sm8450
 
           mkdir -p fs/susfs
-
-          # правильный путь
-          cp -r ../../../../susfs4ksu/kernel/fs/* fs/susfs/
+          cp -r $GITHUB_WORKSPACE/susfs4ksu/kernel/fs/* fs/susfs/
 
           grep -q "susfs" fs/Makefile || \
           echo -e "\nobj-\$(CONFIG_SUSFS) += susfs/" >> fs/Makefile
