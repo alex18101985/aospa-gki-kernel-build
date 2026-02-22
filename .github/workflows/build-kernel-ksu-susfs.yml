@@ -109,7 +109,7 @@ jobs:
           cd kernel_platform/xiaomi/sm8450
 
           mkdir -p fs/susfs
-          cp -r $GITHUB_WORKSPACE/susfs4ksu/kernel/fs/* fs/susfs/
+          cp -r $GITHUB_WORKSPACE/susfs4ksu/kernel_patches/fs/* fs/susfs/
 
           grep -q "susfs" fs/Makefile || \
           echo -e "\nobj-\$(CONFIG_SUSFS) += susfs/" >> fs/Makefile
