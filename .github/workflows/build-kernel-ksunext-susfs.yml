@@ -18,7 +18,7 @@ jobs:
           large-packages: true
           docker-images: true
           swap-storage: false
-      - name: Set Swap Space
+      - name: Set Swap space
         uses: pierotofy/set-swap-space@master
         with:
           swap-size-gb: 16
@@ -44,7 +44,7 @@ jobs:
         run: |
           mkdir -p kernel_platform/clang
           cd kernel_platform/clang
-          git clone -n --depth=1 --filter=tree:0 -b main-kernel --single-branch \
+          git clone -n --depth=1 --filter=tree:0 -b main-kernel-build-2024 --single-branch \
               https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 .
           git sparse-checkout set --no-cone "/$CLANG_DIR"
           git checkout
