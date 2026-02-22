@@ -89,7 +89,9 @@ jobs:
           export CC=clang
           export LLVM=1
           export LLVM_IAS=1
+          export LD=ld.lld
           export KCFLAGS=-Wno-error
+          export MAKEFLAGS="-j$(nproc)"
           ./build.sh marble
       - name: Zip output
         run: |
