@@ -46,7 +46,7 @@ jobs:
           path: kernel_platform/clang
           key: clang-${{ env.CLANG_DIR }}
           restore-keys: |
-          clang-
+           clang-
       - name: Setup Clang
         run: |
           if [ ! -d "kernel_platform/clang/$CLANG_DIR" ]; then
