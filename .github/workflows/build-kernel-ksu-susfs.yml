@@ -72,35 +72,24 @@ jobs:
           cd kernel_platform/xiaomi/sm8450
           rm -rf KernelSU
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
-          # remove inline hooks
-          sed -i '/CONFIG_KSU=y/d' arch/arm64/configs/gki_defconfig
-          sed -i '/CONFIG_KSU_INLINE/d' arch/arm64/configs/gki_defconfig
-      - name: Register KernelSU driver
-        run: |
-          cd kernel_platform/xiaomi/sm8450
-          grep -q "KernelSU" drivers/Makefile || \
-          echo 'obj-$(CONFIG_KSU) += KernelSU/' >> drivers/Makefile
       - name: Configure KernelSU LKM clean
         run: |
           cd kernel_platform/xiaomi/sm8450
           DEF=arch/arm64/configs/gki_defconfig
 
-          # удалить старые
+          # очистить старое
           sed -i '/CONFIG_KSU/d' $DEF
-          sed -i '/CONFIG_MODULES/d' $DEF
-          sed -i '/CONFIG_MODULE_UNLOAD/d' $DEF
-          sed -i '/CONFIG_KALLSYMS/d' $DEF
-          sed -i '/CONFIG_MODULE_SIG/d' $DEF
 
-          # добавить чисто
-          echo "CONFIG_MODULES=y" >> $DEF
-          echo "CONFIG_MODULE_UNLOAD=y" >> $DEF
-          echo "CONFIG_KALLSYMS=y" >> $DEF
-          echo "CONFIG_KALLSYMS_ALL=y" >> $DEF
-          echo "CONFIG_KALLSYMS_BASE_RELATIVE=y" >> $DEF
-          echo "CONFIG_KPROBES=y" >> $DEF
+          # включить модули
+          grep -q CONFIG_MODULES $DEF || echo "CONFIG_MODULES=y" >> $DEF
+          grep -q CONFIG_KALLSYMS=y $DEF || echo "CONFIG_KALLSYMS=y" >> $DEF
+          grep -q CONFIG_KALLSYMS_ALL $DEF || echo "CONFIG_KALLSYMS_ALL=y" >> $DEF
+          grep -q CONFIG_KPROBES $DEF || echo "CONFIG_KPROBES=y" >> $DEF
+          grep -q CONFIG_MODULE_UNLOAD $DEF || echo "CONFIG_MODULE_UNLOAD=y" >> $DEF
+          grep -q CONFIG_KALLSYMS_BASE_RELATIVE $DEF || echo "CONFIG_KALLSYMS_BASE_RELATIVE=y" >> $DEF
+
+          # LKM режим
           echo "CONFIG_KSU=m" >> $DEF
-          echo "CONFIG_MODULE_SIG=n" >> $DEF
       - name: Clone SUSFS source
         run: |
           git clone --depth=1 -b gki-android12-5.10 https://gitlab.com/simonpunk/susfs4ksu.git $GITHUB_WORKSPACE/susfs4ksu
@@ -109,7 +98,7 @@ jobs:
           cd kernel_platform/xiaomi/sm8450
 
           mkdir -p fs/susfs
-          cp -r $GITHUB_WORKSPACE/susfs4ksu/kernel_patches/fs/* fs/susfs/
+          cp -r $GITHUB_WORKSPACE/susfs4ksu/kernel/fs/* fs/susfs/
 
           grep -q "susfs" fs/Makefile || \
           echo -e "\nobj-\$(CONFIG_SUSFS) += susfs/" >> fs/Makefile
@@ -120,10 +109,13 @@ jobs:
 
           sed -i '/CONFIG_SUSFS/d' $DEF
           echo "CONFIG_SUSFS=m" >> $DEF
+      - name: Debug configs
+        run: |
+          grep KSU kernel_platform/xiaomi/sm8450/arch/arm64/configs/gki_defconfig
+          grep SUSFS kernel_platform/xiaomi/sm8450/arch/arm64/configs/gki_defconfig
       - name: Build kernel
         run: |
           cd kernel_platform/xiaomi/sm8450
-          export MAKEFLAGS="-j$(nproc)"
           export ARCH=arm64
           export SUBARCH=arm64
           export CC=clang
