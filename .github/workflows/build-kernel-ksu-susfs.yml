@@ -83,7 +83,7 @@ jobs:
           DEF=arch/arm64/configs/gki_defconfig
 
           # очистить старое
-          sed -i '/CONFIG_KSU=y/d' $DEF
+          sed -i '/CONFIG_KSU/d' $DEF
           sed -i '/CONFIG_KSU_INLINE/d' $DEF
 
           # включить модули
@@ -106,10 +106,15 @@ jobs:
 
           rm -rf fs/susfs
           mkdir -p fs/susfs
+
+          if [ -d "$GITHUB_WORKSPACE/susfs4ksu/kernel/fs" ]; then
           cp -r $GITHUB_WORKSPACE/susfs4ksu/kernel/fs/* fs/susfs/
+          else
+          cp -r $GITHUB_WORKSPACE/susfs4ksu/kernel_patches/fs/* fs/susfs/
+          fi
 
           mkdir -p include/linux
-          cp $GITHUB_WORKSPACE/susfs4ksu/kernel/include/linux/susfs.h include/linux/
+          cp $GITHUB_WORKSPACE/susfs4ksu/kernel/include/linux/susfs.h include/linux/ || true
 
           grep -q "susfs" fs/Makefile || \
           echo -e "\nobj-\$(CONFIG_SUSFS) += susfs/" >> fs/Makefile
