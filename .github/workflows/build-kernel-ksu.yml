@@ -40,16 +40,29 @@ jobs:
           repo init -u https://github.com/alex18101985/aospa-gki-kernel-build -b "$(git -C aospa-gki-kernel-build branch --show-current)" -m manifest.xml --depth=1
           repo sync
           mkdir -p kernel_platform/device/xiaomi/marble-kernel/dtbs
+      - name: Cache Clang
+        uses: actions/cache@v4
+        with:
+          path: kernel_platform/clang
+          key: clang-${{ env.CLANG_DIR }}
+          restore-keys: |
+          clang-
       - name: Setup Clang
         run: |
+          if [ ! -d "kernel_platform/clang/$CLANG_DIR" ]; then
+          echo "Clang not found in cache, downloading..."
+
           mkdir -p kernel_platform/clang
           cd kernel_platform/clang
 
-          : # git clone --filter & git sparse-checkout to only download required directory
           git clone -n --depth=1 --filter=tree:0 -b main-kernel --single-branch \
-              https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 .
+          https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 .
+
           git sparse-checkout set --no-cone "/$CLANG_DIR"
           git checkout
+          else
+          echo "Using cached Clang"
+          fi
       - name: Include personal changes
         run: |
           cp -rf aospa-gki-kernel-build/android_kernel_xiaomi_sm8450/. kernel_platform/xiaomi/sm8450
@@ -75,11 +88,9 @@ jobs:
           rm -rf drivers/kernelsu
 
           # клонировать KernelSU
-          git init drivers/kernelsu
+          git clone https://github.com/tiann/KernelSU.git drivers/kernelsu
           cd drivers/kernelsu
-          git remote add origin https://github.com/tiann/KernelSU.git
-          git fetch --depth=1 origin 92aff05
-          git checkout FETCH_HEAD
+          git checkout 92aff05
           cd ../..
 
           test -f drivers/kernelsu/Kconfig || (echo "Kconfig missing" && exit 1)
