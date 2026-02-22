@@ -1,10 +1,10 @@
-name: build-kernel-ksu-susfs
+name: build-kernel-ksu
 on:
   workflow_dispatch:
 env:
   CLANG_DIR: clang-r584948b
 jobs:
-  build-ksu-susfs:
+  build-ksu:
     runs-on: ubuntu-latest
     steps:
       - name: Free Disk Space (Ubuntu)
