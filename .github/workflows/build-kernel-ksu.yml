@@ -92,16 +92,18 @@ jobs:
           cd drivers/kernelsu
           git checkout 92aff05
           cd ../..
+          
+          # проверить реальный путь
+          test -f drivers/kernelsu/kernel/Kconfig || (echo "KernelSU kernel/Kconfig missing" && exit 1)
 
-          test -f drivers/kernelsu/Kconfig || (echo "Kconfig missing" && exit 1)
-
-          if ! grep -q "drivers/kernelsu/Kconfig" drivers/Kconfig; then
-          echo 'source "drivers/kernelsu/Kconfig"' >> drivers/Kconfig
+          # подключить Kconfig
+          if ! grep -q "drivers/kernelsu/kernel/Kconfig" drivers/Kconfig; then
+          echo 'source "drivers/kernelsu/kernel/Kconfig"' >> drivers/Kconfig
           fi
       - name: Verify KernelSU
         run: |
           grep -i ksu kernel_platform/xiaomi/sm8450/drivers/Makefile || true
-      - name: Configure KernelSU LKM clean
+      - name: Configure KernelSU LKM
         run: |
           cd kernel_platform/xiaomi/sm8450
           DEF=arch/arm64/configs/gki_defconfig
