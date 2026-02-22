@@ -62,6 +62,10 @@ jobs:
       - name: Build kernel
         run: |
           cd kernel_platform/xiaomi/sm8450
+
+          SRC_PATH=$(realpath ../../..)
+          echo "SRC_ROOT=$SRC_PATH" > .build.rc
+          
           ./build.sh marble
       - name: Zip output
         run: |
