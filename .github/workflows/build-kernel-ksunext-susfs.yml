@@ -1,6 +1,8 @@
 name: build-kernel-ksunext-susfs
 on:
   workflow_dispatch:
+env:
+  CLANG_DIR: clang-r584948b
 jobs:
   build-ksunext-susfs:
     runs-on: ubuntu-latest
