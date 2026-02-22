@@ -2,10 +2,10 @@ name: build-kernel-ksunext-susfs
 on:
   workflow_dispatch:
 env:
-  CLANG_DIR: clang-r584948b
+  CLANG_DIR: clang-r510928
 jobs:
   build-ksunext-susfs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Free Disk Space (Ubuntu)
         if: ${{ true }} # Set to true if space insufficient
@@ -28,7 +28,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5 
         with:
-          python-version: 'pypy3.11'
+          python-version: 'pypy3.10'
       - name: Setup build environment
         run: |
           sudo apt-get update
@@ -45,11 +45,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: kernel_platform/clang
-          key: clang-r584948b
+          key: clang-${{ env.CLANG_DIR }}
       - name: Setup Clang
         if: steps.cache-clang.outputs.cache-hit != 'true'
         run: |
-          CLANG_DIR=clang-r584948b
+          CLANG_DIR=clang-r510928
 
           mkdir -p kernel_platform/clang
           cd kernel_platform/clang
@@ -62,7 +62,7 @@ jobs:
           git checkout
       - name: Export Clang path
         run: |
-          echo "CLANG_PATH=$GITHUB_WORKSPACE/kernel_platform/clang/clang-r584948b/bin" >> $GITHUB_ENV
+          echo "CLANG_PATH=$GITHUB_WORKSPACE/kernel_platform/clang/clang-r510928/bin" >> $GITHUB_ENV
       - name: Include KernelSU Next (Dev)
         run: |
           cd kernel_platform/xiaomi/sm8450
@@ -78,15 +78,6 @@ jobs:
         run: |
           cp -rf aospa-gki-kernel-build/android_kernel_xiaomi_sm8450/. kernel_platform/xiaomi/sm8450
           cd kernel_platform/xiaomi/sm8450
-
-          : # Fix clang 19 warnings
-          curl https://github.com/LineageOS/android_kernel_xiaomi_sm8450/commit/aea66fe46a3d796d4f85c5979678055438185cbd.patch > clang.patch
-          patch -p1 < clang.patch
-
-          : # Fix clang 21 warnings
-          curl https://github.com/Pzqqt/android_kernel_xiaomi_marble/commit/f4ae922da12b91d0b7a8109ba2851a44c61b0ba6.patch > clang.patch
-          patch -p1 < clang.patch
-          cd ..
           curl https://github.com/Pzqqt/android_kernel_xiaomi_marble/commit/3e043c16430a95f6d328f5396c14ec18a52ab10a.patch > clang.patch
           sed -i 's/drivers/sm8450\/drivers/g' clang.patch
           sed -i 's/techpack\/display/sm8450-modules\/qcom\/opensource\/display-drivers/g' clang.patch
@@ -96,6 +87,9 @@ jobs:
           cd kernel_platform/xiaomi/sm8450
           export PATH=$CLANG_PATH:$PATH
           export CC=clang
+          export LLVM=1
+          export LLVM_IAS=1
+          export KCFLAGS=-Wno-error
           ./build.sh marble
       - name: Zip output
         run: |
