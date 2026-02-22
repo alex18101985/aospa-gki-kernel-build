@@ -73,8 +73,8 @@ jobs:
           rm -rf KernelSU
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
           # remove inline hooks
-          sed -i '/CONFIG_KSU=y/d' arch/arm64/configs/vendor/gki_defconfig
-          sed -i '/CONFIG_KSU_INLINE/d' arch/arm64/configs/vendor/gki_defconfig
+          sed -i '/CONFIG_KSU=y/d' arch/arm64/configs/gki_defconfig
+          sed -i '/CONFIG_KSU_INLINE/d' arch/arm64/configs/gki_defconfig
       - name: Register KernelSU driver
         run: |
           cd kernel_platform/xiaomi/sm8450
@@ -83,7 +83,7 @@ jobs:
       - name: Configure KernelSU LKM clean
         run: |
           cd kernel_platform/xiaomi/sm8450
-          DEF=arch/arm64/configs/vendor/gki_defconfig
+          DEF=arch/arm64/configs/gki_defconfig
 
           # удалить старые
           sed -i '/CONFIG_KSU/d' $DEF
@@ -138,7 +138,7 @@ jobs:
       - name: Enable SUSFS LKM
         run: |
           cd kernel_platform/xiaomi/sm8450
-          DEF=arch/arm64/configs/vendor/gki_defconfig
+          DEF=arch/arm64/configs/gki_defconfig
 
           sed -i '/CONFIG_SUSFS/d' $DEF
           echo "CONFIG_SUSFS=m" >> $DEF
@@ -152,9 +152,6 @@ jobs:
           export LD=ld.lld
           export PATH=$PWD/../../clang/${CLANG_DIR}/bin:$PATH
           ./build.sh marble
-      - name: Extract kernel version
-        run: |
-           strings kernel_platform/device/xiaomi/marble-kernel/Image | grep "Linux version" | head -n1
       - name: Show built modules
         run: |
           find kernel_platform -name "*.ko"
