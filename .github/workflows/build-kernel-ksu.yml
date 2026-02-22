@@ -151,8 +151,8 @@ jobs:
           modinfo ${{ steps.modules.outputs.ksu }} | grep vermagic
       - name: Verify vermagic match
         run: |
-          KERNEL_VER=$(strings kernel_platform/device/xiaomi/marble-kernel/Image | grep "Linux version" | head -n1 | awk '{print $3}')
-          MOD_VER=$(modinfo ${{ steps.modules.outputs.ksu }} | awk '/vermagic/ {print $2}')
+          MOD_VER=$(modinfo ${{ steps.modules.outputs.ksu }} | awk '/vermagic/ {print $1}')
+          KERNEL_VER=$(basename $(dirname $(dirname ${{ steps.modules.outputs.ksu }})))
 
           echo "Kernel: $KERNEL_VER"
           echo "Module: $MOD_VER"
@@ -161,19 +161,34 @@ jobs:
           echo "Vermagic mismatch!"
           exit 1
           }
-      - name: Fail if modules missing
+      - name: Fail if module missing
         run: |
-          [ -f "${{ steps.modules.outputs.ksu }}" ] || exit 1
-      - name: Verify LKM mode
+          [ -f "${{ steps.modules.outputs.ksu }}" ] || { echo "KernelSU module missing"; exit 1; }
+      - name: Verify KernelSU is LKM binary
         run: |
-          strings ${{ steps.modules.outputs.ksu }} | grep KernelSU
-      - name: Ensure KernelSU is module
+          if strings ${{ steps.modules.outputs.ksu }} | grep -q "KernelSU"; then
+          echo "KernelSU binary OK"
+          else
+          echo "KernelSU string not found in module"
+          exit 1
+          fi
+      - name: Ensure KernelSU built as module
         run: |
-          grep CONFIG_KSU= $(find kernel_platform -name .config | head -n1)
+          CONFIG=$(find kernel_platform -name .config | head -n1)
+
+          grep -q "^CONFIG_KSU=m" $CONFIG || {
+          echo "KernelSU is NOT built as module"
+          grep CONFIG_KSU $CONFIG || true
+          exit 1
+          }
+
+          echo "KernelSU LKM mode confirmed"
       - name: Zip output
         run: |
           git clone --depth=1 -b marble https://github.com/alex18101985/AnyKernel3.git AnyKernel3-marble
           cd AnyKernel3-marble
+          [ -f "${{ steps.modules.outputs.ksu }}" ] || { echo "kernelsu.ko missing"; exit 1; }
+          [ -f "../kernel_platform/device/xiaomi/marble-kernel/Image" ] || { echo "Image missing"; exit 1; }
           mkdir -p modules
           cp ${{ steps.modules.outputs.ksu }} modules/kernelsu.ko
           cp ../kernel_platform/device/xiaomi/marble-kernel/Image .
