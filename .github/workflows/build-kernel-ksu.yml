@@ -77,15 +77,12 @@ jobs:
           # клонировать KernelSU
           git clone https://github.com/tiann/KernelSU.git drivers/kernelsu
           cd drivers/kernelsu
-
-          # зафиксировать нужную версию
           git checkout 92aff05
+          cd ../..
 
-          cd ../../
-
-          # регистрация в Makefile
-          if ! grep -q "obj-\$(CONFIG_KSU).*kernelsu" drivers/Makefile; then
-          echo 'obj-$(CONFIG_KSU) += kernelsu/' >> drivers/Makefile
+          # подключить Kconfig (если ещё не подключён)
+          if ! grep -q "drivers/kernelsu/Kconfig" drivers/Kconfig; then
+          echo 'source "drivers/kernelsu/Kconfig"' >> drivers/Kconfig
           fi
       - name: Verify KernelSU
         run: |
