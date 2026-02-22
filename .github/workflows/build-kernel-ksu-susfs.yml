@@ -114,7 +114,7 @@ jobs:
           fi
 
           mkdir -p include/linux
-          cp $GITHUB_WORKSPACE/susfs4ksu/kernel/include/linux/susfs.h include/linux/ || true
+          cp $GITHUB_WORKSPACE/susfs4ksu/kernel_patches/include/linux/susfs.h include/linux/ || true
 
           grep -q "susfs" fs/Makefile || \
           echo -e "\nobj-\$(CONFIG_SUSFS) += susfs/" >> fs/Makefile
