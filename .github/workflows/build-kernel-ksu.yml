@@ -80,26 +80,18 @@ jobs:
           sed -i 's/drivers/sm8450\/drivers/g' clang.patch
           sed -i 's/techpack\/display/sm8450-modules\/qcom\/opensource\/display-drivers/g' clang.patch
           patch -p1 < clang.patch
-      - name: Include KernelSU (fixed commit)
+      - name: Include KernelSU (setup.sh)
         run: |
           cd kernel_platform/xiaomi/sm8450
 
           # очистить старое
-          rm -rf drivers/kernelsu
+          rm -rf KernelSU drivers/kernelsu drivers/KernelSU
 
-          # клонировать KernelSU
-          git clone https://github.com/tiann/KernelSU.git drivers/kernelsu
-          cd drivers/kernelsu
-          git checkout 92aff05
-          cd ../..
-          
-          # проверить реальный путь
-          test -f drivers/kernelsu/kernel/Kconfig || (echo "KernelSU kernel/Kconfig missing" && exit 1)
+          # установка KernelSU
+          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
 
-          # подключить Kconfig
-          if ! grep -q "drivers/kernelsu/kernel/Kconfig" drivers/Kconfig; then
-          echo 'source "drivers/kernelsu/kernel/Kconfig"' >> drivers/Kconfig
-          fi
+          # проверка
+          test -d KernelSU || (echo "KernelSU not installed" && exit 1)
       - name: Verify KernelSU
         run: |
           grep -i ksu kernel_platform/xiaomi/sm8450/drivers/Makefile || true
