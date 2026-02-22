@@ -5,7 +5,7 @@ env:
   CLANG_DIR: clang-r584948b
 jobs:
   build-ksu-susfs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Free Disk Space (Ubuntu)
         if: ${{ true }} # Set to true if space insufficient
@@ -70,13 +70,8 @@ jobs:
       - name: Include KernelSU
         run: |
           cd kernel_platform/xiaomi/sm8450
-          rm -rf KernelSU
+          rm -rf drivers/kernelsu drivers/KernelSU
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
-      - name: Register KernelSU driver
-        run: |
-          cd kernel_platform/xiaomi/sm8450
-          grep -q "KernelSU" drivers/Makefile || \
-          echo 'obj-$(CONFIG_KSU) += KernelSU/' >> drivers/Makefile
       - name: Configure KernelSU LKM clean
         run: |
           cd kernel_platform/xiaomi/sm8450
@@ -123,6 +118,10 @@ jobs:
           DEF=kernel_platform/xiaomi/sm8450/arch/arm64/configs/gki_defconfig
           sed -i '/CONFIG_SUSFS/d' $DEF
           echo "CONFIG_SUSFS=m" >> $DEF
+      - name: Debug drivers
+        run: |
+          ls kernel_platform/xiaomi/sm8450/drivers
+          grep -i ksu kernel_platform/xiaomi/sm8450/drivers/Makefile
       - name: Debug configs
         run: |
           grep KSU kernel_platform/xiaomi/sm8450/arch/arm64/configs/gki_defconfig
@@ -130,11 +129,6 @@ jobs:
       - name: Build kernel
         run: |
           cd kernel_platform/xiaomi/sm8450
-          export ARCH=arm64
-          export SUBARCH=arm64
-          export CC=clang
-          export LD=ld.lld
-          export PATH=$PWD/../../clang/${CLANG_DIR}/bin:$PATH
           ./build.sh marble
       - name: Show built modules
         run: |
