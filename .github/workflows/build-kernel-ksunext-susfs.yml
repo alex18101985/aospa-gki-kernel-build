@@ -77,6 +77,8 @@ jobs:
       - name: Build kernel
         run: |
           cd kernel_platform/xiaomi/sm8450
+          export CC=clang
+          export LD=ld.lld
           ./build.sh marble
       - name: Zip output
         run: |
