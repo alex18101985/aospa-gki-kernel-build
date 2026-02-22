@@ -72,13 +72,19 @@ jobs:
           cd kernel_platform/xiaomi/sm8450
           rm -rf KernelSU
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
+      - name: Register KernelSU driver
+        run: |
+          cd kernel_platform/xiaomi/sm8450
+          grep -q "KernelSU" drivers/Makefile || \
+          echo 'obj-$(CONFIG_KSU) += KernelSU/' >> drivers/Makefile
       - name: Configure KernelSU LKM clean
         run: |
           cd kernel_platform/xiaomi/sm8450
           DEF=arch/arm64/configs/gki_defconfig
 
           # очистить старое
-          sed -i '/CONFIG_KSU/d' $DEF
+          sed -i '/CONFIG_KSU=y/d' $DEF
+          sed -i '/CONFIG_KSU_INLINE/d' $DEF
 
           # включить модули
           grep -q CONFIG_MODULES $DEF || echo "CONFIG_MODULES=y" >> $DEF
@@ -87,6 +93,7 @@ jobs:
           grep -q CONFIG_KPROBES $DEF || echo "CONFIG_KPROBES=y" >> $DEF
           grep -q CONFIG_MODULE_UNLOAD $DEF || echo "CONFIG_MODULE_UNLOAD=y" >> $DEF
           grep -q CONFIG_KALLSYMS_BASE_RELATIVE $DEF || echo "CONFIG_KALLSYMS_BASE_RELATIVE=y" >> $DEF
+          grep -q CONFIG_MODULE_SIG $DEF || echo "CONFIG_MODULE_SIG=n" >> $DEF
 
           # LKM режим
           echo "CONFIG_KSU=m" >> $DEF
