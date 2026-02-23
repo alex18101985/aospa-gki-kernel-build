@@ -7,7 +7,7 @@ jobs:
   build-ksunext-susfs:
     runs-on: ubuntu-22.04
     steps:
-      - name: Free disk space (Ubuntu)
+      - name: Free disk space
         if: ${{ true }} # Set to true if space insufficient
         uses: jlumbroso/free-disk-space@main
         with:
@@ -45,12 +45,10 @@ jobs:
           cp -rvf aospa-gki-kernel-build/android_kernel_xiaomi_sm8450/. kernel_platform/xiaomi/sm8450
           cd kernel_platform/xiaomi/sm8450
           patch -p1 < no-strict-error.patch 
-      - name: Setup clang
+      - name: Setup Clang
         run: |
           mkdir -p kernel_platform/clang
           cd kernel_platform/clang
-
-          : # git clone --filter & git sparse-checkout to only download required directory
           git clone -n --depth=1 --filter=tree:0 -b main-kernel --single-branch \
               https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 .
           git sparse-checkout set --no-cone "/$CLANG_DIR"
@@ -69,22 +67,17 @@ jobs:
       - name: Build kernel
         run: |
           cd kernel_platform/xiaomi/sm8450
-          
           export CLANG_PATH=$GITHUB_WORKSPACE/kernel_platform/clang/${CLANG_DIR}/bin
           export PATH=$CLANG_PATH:$PATH
-          
           echo "=== Toolchain check ==="
           which clang
           clang --version
-
           echo "=== LLD check ==="
           which ld.lld
           ld.lld --version
-
           echo "=== Environment ==="
           echo "CLANG_PATH=$CLANG_PATH"
-          echo "LLVM=$LLVM LLVM_IAS=$LLVM_IAS"
-          
+          echo "LLVM=$LLVM LLVM_IAS=$LLVM_IAS"     
           ./build.sh marble
       - name: Zip output
         run: |
