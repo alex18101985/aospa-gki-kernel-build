@@ -11,13 +11,17 @@ jobs:
         if: ${{ true }} # Set to true if space insufficient
         uses: jlumbroso/free-disk-space@main
         with:
-          tool-cache: false
+          tool-cache: true
           android: false
           dotnet: false
           haskell: false
-          large-packages: false
-          docker-images: false
+          large-packages: true
+          docker-images: true
           swap-storage: false
+      - name: Set swap space
+        uses: pierotofy/set-swap-space@master
+        with:
+          swap-size-gb: 16
       - uses: actions/checkout@v6
         with:
           path: aospa-gki-kernel-build
