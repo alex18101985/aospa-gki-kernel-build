@@ -7,7 +7,7 @@ jobs:
   build-ksunext-susfs:
     runs-on: ubuntu-22.04
     steps:
-      - name: Free Disk Space (Ubuntu)
+      - name: Free disk space (Ubuntu)
         if: ${{ true }} # Set to true if space insufficient
         uses: jlumbroso/free-disk-space@main
         with:
@@ -18,7 +18,7 @@ jobs:
           large-packages: false
           docker-images: false
           swap-storage: false
-      - name: Set Swap space
+      - name: Set swap space
         uses: pierotofy/set-swap-space@master
         with:
           swap-size-gb: 16
@@ -40,6 +40,11 @@ jobs:
           repo init -u https://github.com/alex18101985/aospa-gki-kernel-build -b "$(git -C aospa-gki-kernel-build branch --show-current)" -m manifest.xml --depth=1
           repo sync
           mkdir -p kernel_platform/device/xiaomi/marble-kernel/dtbs
+      - name: Patch with custom configurations
+        run: |
+          cp -rvf aospa-gki-kernel-build/android_kernel_xiaomi_sm8450/. kernel_platform/xiaomi/sm8450
+          cd kernel_platform/xiaomi/sm8450
+          patch -p1 < no-strict-error.patch 
       - name: Setup Clang
         run: |
           mkdir -p kernel_platform/clang
@@ -62,8 +67,17 @@ jobs:
       - name: Build kernel
         run: |
           cd kernel_platform/xiaomi/sm8450
+          export CLANG_PATH=$GITHUB_WORKSPACE/kernel_platform/clang/${CLANG_DIR}/bin
+          export PATH=$CLANG_PATH:$PATH
           export CC=clang
           export LD=ld.lld
+          export AR=llvm-ar
+          export NM=llvm-nm
+          export OBJCOPY=llvm-objcopy
+          export OBJDUMP=llvm-objdump
+          export STRIP=llvm-strip
+          which clang
+          which ld.lld
           ./build.sh marble
       - name: Zip output
         run: |
@@ -88,7 +102,7 @@ jobs:
       - name: Generate release tag
         id: tag
         run: echo "release_tag=AOSPA_GKI_KSUNext_SuSFS_$(date +'%Y.%m.%d')" >> "$GITHUB_OUTPUT"
-      - name: Create Release
+      - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.release_tag }}
