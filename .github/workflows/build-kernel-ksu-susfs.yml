@@ -12,9 +12,9 @@ jobs:
         uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: true
-          android: false
-          dotnet: false
-          haskell: false
+          android: true
+          dotnet: true
+          haskell: true
           large-packages: true
           docker-images: true
           swap-storage: false
@@ -51,14 +51,24 @@ jobs:
           repo init -u https://github.com/alex18101985/aospa-gki-kernel-build -b "$(git -C aospa-gki-kernel-build branch --show-current)" -m manifest.xml --depth=1
           repo sync -c -j$(nproc) --force-sync
           mkdir -p kernel_platform/device/xiaomi/marble-kernel/dtbs
+      - name: Cache Clang
+        uses: actions/cache@v4
+        with:
+          path: kernel_platform/clang/${{ env.CLANG_DIR }}
+          key: clang-${{ env.CLANG_DIR }}
       - name: Setup Clang
         run: |
           mkdir -p kernel_platform/clang
           cd kernel_platform/clang
-          git clone -n --depth=1 --filter=tree:0 -b main-kernel-build-2024 --single-branch \
+          if [ ! -d "${CLANG_DIR}" ]; then
+            git clone -n --depth=1 --filter=tree:0 \
+              -b main-kernel-build-2024 --single-branch \
               https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 .
-          git sparse-checkout set --no-cone "/$CLANG_DIR"
-          git checkout
+            git sparse-checkout init --no-cone
+            git sparse-checkout set "${CLANG_DIR}"
+            git checkout
+            rm -rf .git
+          fi
       - name: Include KernelSU
         run: |
           cd kernel_platform/xiaomi/sm8450
