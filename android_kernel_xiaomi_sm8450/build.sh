@@ -5,9 +5,10 @@
 
 SECONDS=0 # start builtin bash timer
 KP_ROOT="$(realpath ../..)"
-TC_DIR="$KP_ROOT/prebuilts-master/clang/host/linux-x86/clang-r510928"
+SRC_ROOT="$HOME/pa"
+TC_DIR="$KP_ROOT/clang/$CLANG_DIR"
 PREBUILTS_DIR="$KP_ROOT/prebuilts/kernel-build-tools/linux-x86"
-BRANCH="$(git branch --show-current)"
+BRANCH="vauxite"
 MODULES_REPO="sm8450-modules"
 DT_REPO="sm8450-devicetrees"
 
