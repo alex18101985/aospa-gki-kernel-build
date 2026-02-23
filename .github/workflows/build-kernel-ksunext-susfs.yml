@@ -49,7 +49,7 @@ jobs:
         run: |
           mkdir -p kernel_platform/clang
           cd kernel_platform/clang
-          git clone -n --depth=1 --filter=tree:0 -b main-kernel --single-branch \
+          git clone -n --depth=1 --filter=tree:0 -b main-kernel-build-2024 --single-branch \
               https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 .
           git sparse-checkout set --no-cone "/$CLANG_DIR"
           git checkout
@@ -68,16 +68,7 @@ jobs:
         run: |
           cd kernel_platform/xiaomi/sm8450
           export CLANG_PATH=$GITHUB_WORKSPACE/kernel_platform/clang/${CLANG_DIR}/bin
-          export PATH=$CLANG_PATH:$PATH
-          echo "=== Toolchain check ==="
-          which clang
-          clang --version
-          echo "=== LLD check ==="
-          which ld.lld
-          ld.lld --version
-          echo "=== Environment ==="
-          echo "CLANG_PATH=$CLANG_PATH"
-          echo "LLVM=$LLVM LLVM_IAS=$LLVM_IAS"     
+          export PATH=$CLANG_PATH:$PATH   
           ./build.sh marble
       - name: Zip output
         run: |
