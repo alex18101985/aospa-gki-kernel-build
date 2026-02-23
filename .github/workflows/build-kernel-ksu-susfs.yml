@@ -53,16 +53,9 @@ jobs:
           git checkout
       - name: Include KernelSU
         run: |
-          cd kernel_workspace/kernel_platform
-          rm -rf KernelSU drivers/kernelsu drivers/KernelSU
+          cd kernel_platform/xiaomi/sm8450
+          rmdir KernelSU drivers/kernelsu drivers/KernelSU
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
-      - name: Enable KernelSU config
-        run: |
-          cd kernel_workspace/kernel_platform/xiaomi/sm8450
-          scripts/config --enable KSU
-      - name: Verify KernelSU
-        run: |
-          ls kernel_workspace/kernel_platform/drivers/kernelsu
       - name: Include SUSFS
         run: |
           HOME="$(pwd)"
