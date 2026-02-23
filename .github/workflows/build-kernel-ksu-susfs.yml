@@ -18,10 +18,10 @@ jobs:
           large-packages: false
           docker-images: false
           swap-storage: false
-      - name: Set swap space
+      - name: Set Swap Space
         uses: pierotofy/set-swap-space@master
         with:
-          swap-size-gb: 10
+          swap-size-gb: 16
       - uses: actions/checkout@v6
         with:
           path: aospa-gki-kernel-build
@@ -32,9 +32,29 @@ jobs:
       - name: Setup build environment
         run: |
           sudo apt-get update
-          sudo apt-get install -y bc device-tree-compiler
+          sudo apt-get install -y \
+          bc \
+          device-tree-compiler \
+          bison \
+          flex \
+          libssl-dev \
+          libelf-dev \
+          ccache \
+          curl \
+          git
           sudo curl --create-dirs -o /usr/local/bin/repo -L https://storage.googleapis.com/git-repo-downloads/repo
           sudo chmod a+rx /usr/local/bin/repo
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ github.ref }}
+          restore-keys: |
+            ccache-
+      - name: Configure ccache
+        run: |
+          ccache --max-size=5G
+          echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
       - name: Clone repo and sync
         run: |
           repo init -u https://github.com/alex18101985/aospa-gki-kernel-build -b "$(git -C aospa-gki-kernel-build branch --show-current)" -m manifest.xml --depth=1
@@ -52,7 +72,7 @@ jobs:
         run: |
           cd kernel_platform/xiaomi/sm8450
           rm -rf KernelSU
-          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
+          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
       - name: Include SUSFS
         run: |
           HOME="$(pwd)"
@@ -85,7 +105,9 @@ jobs:
           cd kernel_platform/xiaomi/sm8450
           export CLANG_PATH=$GITHUB_WORKSPACE/kernel_platform/clang/${CLANG_DIR}/bin
           export PATH=$CLANG_PATH:$PATH
-          ./build.sh -j16 marble
+          export USE_CCACHE=1
+          export CC="ccache clang"
+          ./build.sh marble
       - name: Zip output
         run: |
           git clone --depth=1 -b marble https://github.com/alex18101985/AnyKernel3.git AnyKernel3-marble
