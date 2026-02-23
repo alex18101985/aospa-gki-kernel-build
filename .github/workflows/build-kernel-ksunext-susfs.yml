@@ -40,29 +40,21 @@ jobs:
           repo init -u https://github.com/alex18101985/aospa-gki-kernel-build -b "$(git -C aospa-gki-kernel-build branch --show-current)" -m manifest.xml --depth=1
           repo sync
           mkdir -p kernel_platform/device/xiaomi/marble-kernel/dtbs
-      - name: Prepare build.rc
+      - name: Patch with custom configurations
         run: |
+          cp -rvf aospa-gki-kernel-build/android_kernel_xiaomi_sm8450/. kernel_platform/xiaomi/sm8450
           cd kernel_platform/xiaomi/sm8450
-          echo "SRC_ROOT=$(realpath ../../..)" > .build.rc
-      - name: Cache Clang
-        uses: actions/cache@v4
-        with:
-          path: kernel_platform/clang/${{ env.CLANG_DIR }}
-          key: clang-${{ env.CLANG_DIR }}-v1
-          restore-keys: |
-            clang-${{ env.CLANG_DIR }}
-      - name: Setup Clang
+          patch -p1 < no-strict-error.patch 
+      - name: Setup clang
         run: |
           mkdir -p kernel_platform/clang
           cd kernel_platform/clang
-          if [ ! -d "${CLANG_DIR}" ]; then
-            git clone -n --depth=1 --filter=tree:0 -b main-kernel-build-2024 --single-branch \
+
+          : # git clone --filter & git sparse-checkout to only download required directory
+          git clone -n --depth=1 --filter=tree:0 -b main-kernel --single-branch \
               https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 .
-            git sparse-checkout set --no-cone "/${CLANG_DIR}"
-            git checkout
-          else
-            echo "Clang cache found, skipping download"
-          fi
+          git sparse-checkout set --no-cone "/$CLANG_DIR"
+          git checkout
       - name: Include KernelSU Next (Dev)
         run: |
           cd kernel_platform/xiaomi/sm8450
@@ -77,10 +69,22 @@ jobs:
       - name: Build kernel
         run: |
           cd kernel_platform/xiaomi/sm8450
+          
           export CLANG_PATH=$GITHUB_WORKSPACE/kernel_platform/clang/${CLANG_DIR}/bin
           export PATH=$CLANG_PATH:$PATH
+          
+          echo "=== Toolchain check ==="
           which clang
+          clang --version
+
+          echo "=== LLD check ==="
           which ld.lld
+          ld.lld --version
+
+          echo "=== Environment ==="
+          echo "CLANG_PATH=$CLANG_PATH"
+          echo "LLVM=$LLVM LLVM_IAS=$LLVM_IAS"
+          
           ./build.sh marble
       - name: Zip output
         run: |
