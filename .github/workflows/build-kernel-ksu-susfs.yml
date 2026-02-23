@@ -34,52 +34,27 @@ jobs:
       - name: Setup build environment
         run: |
           sudo apt-get update
-          sudo apt-get install -y bc device-tree-compiler bison flex libssl-dev libelf-dev ccache curl git
+          sudo apt-get install -y bc device-tree-compiler
           sudo curl --create-dirs -o /usr/local/bin/repo -L https://storage.googleapis.com/git-repo-downloads/repo
           sudo chmod a+rx /usr/local/bin/repo
-      - name: Cache ccache
-        uses: actions/cache@v4
-        with:
-          path: ~/.ccache
-          key: ccache-${{ runner.os }}-clang-${{ env.CLANG_DIR }}
-          restore-keys: |
-            ccache-${{ runner.os }}-
-            ccache-
-      - name: Configure ccache
-        run: |
-          echo "USE_CCACHE=1" >> $GITHUB_ENV
-          echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
-          ccache --max-size=10G
       - name: Clone repo and sync
         run: |
           repo init -u https://github.com/alex18101985/aospa-gki-kernel-build -b "$(git -C aospa-gki-kernel-build branch --show-current)" -m manifest.xml --depth=1
-          repo sync -c -j$(nproc) --force-sync
+          repo sync
           mkdir -p kernel_platform/device/xiaomi/marble-kernel/dtbs
-      - name: Cache Clang
-        uses: actions/cache@v4
-        with:
-          path: kernel_platform/clang/${{ env.CLANG_DIR }}
-          key: clang-${{ runner.os }}-${{ env.CLANG_DIR }}
       - name: Setup Clang
         run: |
           mkdir -p kernel_platform/clang
           cd kernel_platform/clang
-          if [ ! -d "${CLANG_DIR}" ]; then
-            git clone -n --depth=1 --filter=tree:0 \
-              -b main-kernel-build-2024 --single-branch \
+
+          git clone -n --depth=1 --filter=tree:0 -b main-kernel-build-2024 --single-branch \
               https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 .
-            git sparse-checkout init --no-cone
-            git sparse-checkout set "${CLANG_DIR}"
-            git checkout
-            rm -rf .git
-          else
-            echo "Clang restored from cache"
-          fi
-          echo "$PWD/${CLANG_DIR}/bin" >> $GITHUB_PATH
+          git sparse-checkout set --no-cone "/$CLANG_DIR"
+          git checkout
       - name: Include KernelSU
         run: |
           cd kernel_platform/xiaomi/sm8450
-          rm -rf KernelSU drivers/kernelsu drivers/KernelSU
+          rmdir KernelSU
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
       - name: Include SUSFS
         run: |
@@ -113,10 +88,6 @@ jobs:
           cd kernel_platform/xiaomi/sm8450
           export CLANG_PATH=$GITHUB_WORKSPACE/kernel_platform/clang/${CLANG_DIR}/bin
           export PATH=$CLANG_PATH:$PATH
-          export USE_CCACHE=1
-          export CCACHE_DIR=$HOME/.ccache
-          export CC="ccache clang"
-          export HOSTCC="ccache clang"
           ./build.sh marble
       - name: Zip output
         run: |
