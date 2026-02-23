@@ -1,8 +1,9 @@
 # AOSPA GKI Kernel
 ## Differences from stock AOSPA kernel:
-- Added KernelSU Next (SuSFS)
+- Added KernelSU (SuSFS)
+- Added support for other unofficial version of KernelSU (backslashxx)
 - Added Westwood TCP (set as default)
-- Built with latest Clang
+- Built with Clang r510928
 
 <p>&nbsp;</p>
 
