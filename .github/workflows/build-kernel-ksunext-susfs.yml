@@ -2,7 +2,7 @@ name: build-kernel-ksu-susfs
 on:
   workflow_dispatch:
 env:
-  JOBS: 6
+  JOBS: 4
   CLANG_DIR: clang-r510928
 jobs:
   build-ksu-susfs:
