@@ -99,6 +99,7 @@ jobs:
           export KCPPFLAGS="-O2"
           export KBUILD_BUILD_USER=adithya
           export KBUILD_BUILD_HOST=android-build
+          export LOCALVERSION="-AOSPA-GKI-Marble-KSU-SuSFS"
           ./build.sh marble
       - name: Zip output
         run: |
