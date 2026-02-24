@@ -72,6 +72,8 @@ jobs:
           cd kernel_platform/xiaomi/sm8450
           export CLANG_PATH=$GITHUB_WORKSPACE/kernel_platform/clang/${CLANG_DIR}/bin
           export PATH=$CLANG_PATH:$PATH
+          export KBUILD_BUILD_USER=aospa
+          export KBUILD_BUILD_HOST=marble-ci
           ./build.sh marble
       - name: Zip output
         run: |
