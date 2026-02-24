@@ -84,6 +84,13 @@ jobs:
           cp -rvf aospa-gki-kernel-build/android_kernel_xiaomi_sm8450/. kernel_platform/xiaomi/sm8450
           cd kernel_platform/xiaomi/sm8450
           patch -p1 < no-strict-error.patch
+      - name: Clean git state
+        run: |
+          git config --global user.name "alex"
+          git config --global user.email "ci@local"
+          git clean -fdx
+          git reset --hard
+          git status
       - name: Build kernel
         run: |
           cd kernel_platform/xiaomi/sm8450
