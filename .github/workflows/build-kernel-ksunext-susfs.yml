@@ -7,7 +7,6 @@ env:
 jobs:
   build-ksu-susfs:
     runs-on: ubuntu-22.04
-    timeout-minutes: 90
     steps:
       - name: Free disk space
         if: ${{ true }} # Set to true if space insufficient
