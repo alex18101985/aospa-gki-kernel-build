@@ -172,10 +172,29 @@ fi
 # Finalize config (IMPORTANT)
 m olddefconfig
 
+echo -e "\nChecking LTO configuration...\n"
+
+grep CONFIG_LTO out/.config
+
+if grep -q "CONFIG_THINLTO=y" out/.config; then
+    echo "ThinLTO: ENABLED"
+else
+    echo "ThinLTO: NOT ENABLED"
+    exit 1
+fi
+
 $ONLY_CONFIG && exit
 
 echo -e "\nBuilding kernel...\n"
 m Image modules dtbs
+echo -e "\nChecking ThinLTO usage...\n"
+
+if [ -d out/thinlto-cache ] && [ "$(ls -A out/thinlto-cache 2>/dev/null)" ]; then
+    echo "ThinLTO cache detected -> ThinLTO is ACTIVE"
+else
+    echo "WARNING: ThinLTO cache is empty!"
+    exit 1
+fi
 rm -rf out/modules out/*.ko
 m INSTALL_MOD_PATH=modules INSTALL_MOD_STRIP=1 modules_install
 
