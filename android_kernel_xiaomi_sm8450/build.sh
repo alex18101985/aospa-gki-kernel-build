@@ -107,10 +107,13 @@ export PATH="$TC_DIR/bin:$PREBUILTS_DIR/bin:$PATH"
 
 function m() {
     make -j$(nproc --all) O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 \
-        KBUILD_BUILD_USER=adithya KBUILD_BUILD_HOST=android-build \
+        KCFLAGS="-O2 -pipe" \
+        KCPPFLAGS="-O2" \
+        LDFLAGS="-Wl,--thinlto-cache-dir=$(pwd)/out/thinlto-cache" \
         DTC_EXT="$PREBUILTS_DIR/bin/dtc" \
         DTC_OVERLAY_TEST_EXT="$PREBUILTS_DIR/bin/ufdt_apply_overlay" \
-        TARGET_PRODUCT=$TARGET $@ || exit $?
+        TARGET_PRODUCT=$TARGET \
+        $@ || exit $?
 }
 
 function get_trees_rev() {
@@ -132,20 +135,42 @@ $DO_CLEAN && (
 )
 
 mkdir -p out
+mkdir -p out/thinlto-cache   # ThinLTO cache directory
 # export LOCALVERSION="$(get_trees_rev)"
 
 echo -e "Generating config...\n"
+
+# Base config
 m $DEFCONFIG
+
+# Merge vendor configs
 m ./scripts/kconfig/merge_config.sh $DEFCONFIGS vendor/${TARGET}_GKI.config
+
+# Apply version
 scripts/config --file out/.config \
     --set-str LOCALVERSION "-$BRANCH-marble-ksu-susfs" \
     -d LOCALVERSION_AUTO
-$NO_LTO && (
+
+# === Enable ThinLTO (recommended for SM8450) ===
+scripts/config --file out/.config \
+    -e LTO_CLANG \
+    -d LTO_CLANG_FULL \
+    -d LTO_NONE \
+    -e THINLTO
+
+# Disable LTO if requested
+if [ "$NO_LTO" = true ]; then
     scripts/config --file out/.config \
         --set-str LOCALVERSION "-${BRANCH}-marble-ksu-susfs-nolto" \
-        -d LTO_CLANG_FULL -e LTO_NONE
+        -d LTO_CLANG \
+        -d LTO_CLANG_FULL \
+        -d THINLTO \
+        -e LTO_NONE
     echo -e "\nDisabled LTO!"
-)
+fi
+
+# Finalize config (IMPORTANT)
+m olddefconfig
 
 $ONLY_CONFIG && exit
 
