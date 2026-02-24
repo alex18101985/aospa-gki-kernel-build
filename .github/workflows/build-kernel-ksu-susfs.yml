@@ -98,6 +98,8 @@ jobs:
           cp -rvf aospa-gki-kernel-build/android_kernel_xiaomi_sm8450/. kernel_platform/xiaomi/sm8450
           cd kernel_platform/xiaomi/sm8450
           patch -p1 < no-strict-error.patch
+          patch -p1 < kgsl-snapshot-off.patch
+          patch -p1 < ultra-silent-pro-sm8450.patch
       - name: Build kernel
         run: |
           cd kernel_platform/xiaomi/sm8450
