@@ -95,13 +95,10 @@ jobs:
           export PATH=$CLANG_PATH:$PATH
           export LLVM=1
           export LLVM_IAS=1
-          export CC=clang
-          export LD=ld.lld
-          export KCFLAGS="-O2 -mcpu=cortex-x2 -mtune=cortex-x2 -fomit-frame-pointer"
+          export KCFLAGS="-O2 -mcpu=generic -fomit-frame-pointer -fno-unwind-tables -fno-asynchronous-unwind-tables"
           export KCPPFLAGS="-O2"
           export KBUILD_BUILD_USER=adithya
           export KBUILD_BUILD_HOST=android-build
-          export LOCALVERSION="-AOSPA-GKI-Marble-KSU-SuSFS"
           ./build.sh marble
       - name: Zip output
         run: |
