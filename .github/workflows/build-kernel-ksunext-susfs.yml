@@ -88,15 +88,8 @@ jobs:
       - name: Build kernel
         run: |
           cd kernel_platform/xiaomi/sm8450
-          mkdir -p out/thinlto-cache
-          export KBUILD_LDFLAGS+=" -Wl,--thinlto-cache-dir=$(pwd)/out/thinlto-cache"
-          export KBUILD_LDFLAGS+=" -Wl,--thinlto-cache-policy,cache_size=10%:prune_interval=30s"
           export CLANG_PATH=$GITHUB_WORKSPACE/kernel_platform/clang/${CLANG_DIR}/bin
           export PATH=$CLANG_PATH:$PATH
-          export LLVM=1
-          export LLVM_IAS=1
-          export KCFLAGS="-O2 -mcpu=generic -fomit-frame-pointer -fno-unwind-tables -fno-asynchronous-unwind-tables"
-          export KCPPFLAGS="-O2"
           export KBUILD_BUILD_USER=adithya
           export KBUILD_BUILD_HOST=android-build
           export LOCALVERSION="-AOSPA-GKI-Marble-KSU-SuSFS"
