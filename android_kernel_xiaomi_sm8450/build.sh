@@ -130,7 +130,7 @@ echo -e "Generating config...\n"
 m $DEFCONFIG
 m ./scripts/kconfig/merge_config.sh $DEFCONFIGS vendor/${TARGET}_GKI.config
 scripts/config --file out/.config \
-    --set-str LOCALVERSION "-$BRANCH-gki-marble-ksu-susfs" \
+    --set-str LOCALVERSION "-$BRANCH-gki-ksu-susfs" \
     -d LOCALVERSION_AUTO
 echo -e "\nForcing ThinLTO...\n"
 scripts/config --file out/.config \
