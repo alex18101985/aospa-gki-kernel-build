@@ -1,9 +1,6 @@
 #!/bin/bash
-#
-# Compile script for Xiaomi 8450 kernel, dts and modules with AOSPA
-# Copyright (C) 2024 Adithya R.
 
-SECONDS=0 # start builtin bash timer
+SECONDS=0
 KP_ROOT="$(realpath ../..)"
 SRC_ROOT="$HOME/pa"
 TC_DIR="$KP_ROOT/clang/$CLANG_DIR"
@@ -60,13 +57,6 @@ DTBO_COPY_TO="$DTB_COPY_TO/dtbo.img"
 VBOOT_DIR="$KERNEL_DIR/vendor_ramdisk"
 VDLKM_DIR="$KERNEL_DIR/vendor_dlkm"
 
-# AK3_DIR="$HOME/AnyKernel3"
-# ZIPNAME="aospa-kernel-$TARGET-$(date '+%Y%m%d-%H%M').zip"
-# if test -z "$(git rev-parse --show-cdup 2>/dev/null)" &&
-#    head=$(git rev-parse --verify HEAD 2>/dev/null); then
-#     ZIPNAME="${ZIPNAME::-4}-$(echo $head | cut -c1-8).zip"
-# fi
-
 DEFCONFIG="gki_defconfig"
 DEFCONFIGS="vendor/waipio_GKI.config \
 vendor/xiaomi_GKI.config \
@@ -107,7 +97,7 @@ export PATH="$TC_DIR/bin:$PREBUILTS_DIR/bin:$PATH"
 
 function m() {
     make -j$(nproc --all) O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 \
-        KBUILD_BUILD_USER=adithya KBUILD_BUILD_HOST=android-build \
+        KBUILD_BUILD_USER=alex KBUILD_BUILD_HOST=github-build \
         KCFLAGS="-O2 -pipe" \
         KCPPFLAGS="-O2" \
         LDFLAGS="-Wl,--thinlto-jobs=$(nproc --all)" \
@@ -135,13 +125,12 @@ $DO_CLEAN && (
 )
 
 mkdir -p out
-# export LOCALVERSION="$(get_trees_rev)"
 
 echo -e "Generating config...\n"
 m $DEFCONFIG
 m ./scripts/kconfig/merge_config.sh $DEFCONFIGS vendor/${TARGET}_GKI.config
 scripts/config --file out/.config \
-    --set-str LOCALVERSION "-$BRANCH-marble-ksu-susfs" \
+    --set-str LOCALVERSION "-$BRANCH-gki-marble-ksu-susfs" \
     -d LOCALVERSION_AUTO
 echo -e "\nForcing ThinLTO...\n"
 scripts/config --file out/.config \
@@ -150,17 +139,6 @@ scripts/config --file out/.config \
     -e LTO_CLANG \
     -e LTO_CLANG_THIN
 m olddefconfig
-
-echo -e "\nChecking LTO configuration...\n"
-grep CONFIG_LTO out/.config
-if grep -q "CONFIG_LTO_CLANG=y" out/.config && \
-   grep -q "CONFIG_LTO_CLANG_THIN=y" out/.config && \
-   ! grep -q "CONFIG_LTO_NONE=y" out/.config; then
-    echo "ThinLTO: enabled"
-else
-    echo "ThinLTO: disabled"
-    exit 1
-fi
 
 $ONLY_CONFIG && exit
 
@@ -199,20 +177,6 @@ rm -f out/arch/arm64/boot/dts/vendor/qcom/*.dtbo
 ../../build/android/merge_dtbs.py out/dtbs-base out/arch/arm64/boot/dts/vendor/qcom/ out/dtbs || exit $?
 
 echo -e "\nCopying files...\n"
-
-# rm -rf AnyKernel3
-# if [ -d "$AK3_DIR" ]; then
-# 	cp -r $AK3_DIR AnyKernel3
-# 	git -C AnyKernel3 checkout marble &> /dev/null
-# elif ! git clone -q https://github.com/ghostrider-reborn/AnyKernel3 -b marble; then
-# 	echo -e "\nAnyKernel3 repo not found locally and couldn't clone from GitHub! Aborting..."
-# 	exit 1
-# fi
-# KERNEL_COPY_TO="AnyKernel3"
-# DTB_COPY_TO="AnyKernel3/dtb"
-# DTBO_COPY_TO="AnyKernel3/dtbo.img"
-# VBOOT_DIR="AnyKernel3/vendor_boot_modules"
-# VDLKM_DIR="AnyKernel3/vendor_dlkm_modules"
 
 cp out/arch/arm64/boot/Image $KERNEL_COPY_TO
 echo "Copied kernel to $KERNEL_COPY_TO."
@@ -281,10 +245,4 @@ done
 sed -E -i 's|([^: ]*/)([^/]*\.ko)([:]?)([ ]\|$)|/lib/modules/\2\3\4|g' $VBOOT_DIR/modules.dep
 sed -E -i 's|([^: ]*/)([^/]*\.ko)([:]?)([ ]\|$)|/vendor_dlkm/lib/modules/\2\3\4|g' $VDLKM_DIR/modules.dep
 
-# cd AnyKernel3
-# zip -r9 "../$ZIPNAME" * -x .git README.md *placeholder
-# cd ..
-# rm -rf AnyKernel3
-
 echo -e "\nCompleted in $((SECONDS / 60)) minute(s) and $((SECONDS % 60)) second(s) !"
-# echo "$(realpath $ZIPNAME)"
