@@ -50,14 +50,10 @@ jobs:
         run: |
           mkdir -p kernel_platform/clang
           cd kernel_platform/clang
-
           if [ ! -d "${CLANG_DIR}" ]; then
             echo "Clang not found in cache. Downloading..."
-
-            git clone -n --depth=1 --filter=tree:0 \
-              -b main-kernel-build-2024 --single-branch \
+            git clone -n --depth=1 --filter=tree:0 -b main-kernel --single-branch \
               https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 .
-
             git sparse-checkout init --cone
             git sparse-checkout set ${CLANG_DIR}
             git checkout
@@ -80,19 +76,9 @@ jobs:
       - name: Include unofficial KernelSU manager signature (backslashxx)
         run: |
           FILE="kernel_platform/xiaomi/sm8450/KernelSU/kernel/apk_sign.c"
-          
           sed -i '/[[:space:]]*return check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH);/c \
               return check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH) \
                   || check_v2_signature(path, 0x363, "4359c171f32543394cbc23ef908c4bb94cad7c8087002ba164c8230948c21549");' "$FILE"
-
-          if grep -q "0x363" "$FILE"; then
-            echo "--- Full function preview ---"
-            grep -B 3 -A 5 "check_v2_signature" "$FILE"
-            echo "-----------------------------"
-          else
-            cat "$FILE"
-            exit 1
-          fi
       - name: Patch with custom configurations
         run: |
           cp -rvf aospa-gki-kernel-build/android_kernel_xiaomi_sm8450/. kernel_platform/xiaomi/sm8450
@@ -125,7 +111,7 @@ jobs:
           find . -type d -empty -delete
       - name: Generate release tag
         id: tag
-        run: echo "release_tag=AOSPA_GKI_Marble_KSU_SuSFS_$(date +'%Y.%m.%d-%H%M')" >> "$GITHUB_OUTPUT"
+        run: echo "release_tag=AOSPA_GKI_KSU_SuSFS_$(date +'%Y.%m.%d_%H%M')" >> "$GITHUB_OUTPUT"
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
