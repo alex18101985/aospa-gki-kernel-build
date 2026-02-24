@@ -1,8 +1,0 @@
-diff --git a/drivers/gpu/msm/kgsl_snapshot.c b/drivers/gpu/msm/kgsl_snapshot.c
---- a/drivers/gpu/msm/kgsl_snapshot.c
-+++ b/drivers/gpu/msm/kgsl_snapshot.c
-@@ -1,3 +1,7 @@
-+#ifndef SNAPSHOT_ENABLE
-+#define SNAPSHOT_ENABLE 0
-+#endif
-+
