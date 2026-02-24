@@ -137,11 +137,11 @@ echo -e "Generating config...\n"
 m $DEFCONFIG
 m ./scripts/kconfig/merge_config.sh $DEFCONFIGS vendor/${TARGET}_GKI.config
 scripts/config --file out/.config \
-    --set-str LOCALVERSION "-$BRANCH" \
+    --set-str LOCALVERSION "-AOSPA-GKI-Marble-KSU-SuSFS" \
     -d LOCALVERSION_AUTO
 $NO_LTO && (
     scripts/config --file out/.config \
-        --set-str LOCALVERSION "-${BRANCH}-nolto" \
+        --set-str LOCALVERSION "-AOSPA-GKI-Marble-KSU-SuSFS-nolto" \
         -d LTO_CLANG_FULL -e LTO_NONE
     echo -e "\nDisabled LTO!"
 )
