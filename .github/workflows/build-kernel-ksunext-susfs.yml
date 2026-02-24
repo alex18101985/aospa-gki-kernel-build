@@ -1,11 +1,11 @@
-name: build-kernel-ksunext-susfs
+name: build-kernel-ksu-susfs
 on:
   workflow_dispatch:
 env:
   JOBS: 6
   CLANG_DIR: clang-r510928
 jobs:
-  build-ksunext-susfs:
+  build-ksu-susfs:
     runs-on: ubuntu-22.04
     timeout-minutes: 90
     steps:
@@ -13,12 +13,12 @@ jobs:
         if: ${{ true }} # Set to true if space insufficient
         uses: jlumbroso/free-disk-space@main
         with:
-          tool-cache: false
-          android: false
-          dotnet: false
-          haskell: false
-          large-packages: false
-          docker-images: false
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
           swap-storage: false
       - name: Set swap space
         uses: pierotofy/set-swap-space@master
@@ -51,17 +51,35 @@ jobs:
               https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 .
           git sparse-checkout set --no-cone "/$CLANG_DIR"
           git checkout
-      - name: Include KernelSU Next
+      - name: Include KernelSU
         run: |
           cd kernel_platform/xiaomi/sm8450
           rm -rf KernelSU drivers/kernelsu drivers/KernelSU
-          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s dev_susfs
+          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
       - name: Include SuSFS
         run: |
           HOME="$(pwd)"
           cp -r susfs4ksu/kernel_patches/* kernel_platform/xiaomi/sm8450
-          cd kernel_platform/xiaomi/sm8450
+          cd kernel_platform/xiaomi/sm8450/KernelSU
+          patch -p1 < 10_enable_susfs_for_ksu.patch
+          cd ..
           patch -p1 < 50_add_susfs_in_gki-android12-5.10.patch
+      - name: Include unofficial KernelSU manager signature (backslashxx)
+        run: |
+          FILE="kernel_platform/xiaomi/sm8450/KernelSU/kernel/apk_sign.c"
+          
+          sed -i '/[[:space:]]*return check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH);/c \
+              return check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH) \
+                  || check_v2_signature(path, 0x363, "4359c171f32543394cbc23ef908c4bb94cad7c8087002ba164c8230948c21549");' "$FILE"
+
+          if grep -q "0x363" "$FILE"; then
+            echo "--- Full function preview ---"
+            grep -B 3 -A 5 "check_v2_signature" "$FILE"
+            echo "-----------------------------"
+          else
+            cat "$FILE"
+            exit 1
+          fi
       - name: Patch with custom configurations
         run: |
           cp -rvf aospa-gki-kernel-build/android_kernel_xiaomi_sm8450/. kernel_platform/xiaomi/sm8450
@@ -74,7 +92,7 @@ jobs:
           export PATH=$CLANG_PATH:$PATH
           export KBUILD_BUILD_USER=adithya
           export KBUILD_BUILD_HOST=android-build
-          export LOCALVERSION="-AOSPA-Marble-KSUNext-SuSFS"
+          export LOCALVERSION="-AOSPA-GKI-Marble-KSU-SuSFS"
           ./build.sh marble
       - name: Zip output
         run: |
@@ -98,7 +116,7 @@ jobs:
           find . -type d -empty -delete
       - name: Generate release tag
         id: tag
-        run: echo "release_tag=AOSPA_GKI_KSUNext_SuSFS_$(date +'%Y.%m.%d')" >> "$GITHUB_OUTPUT"
+        run: echo "release_tag=AOSPA_GKI_Marble_KSU_SuSFS_$(date +'%Y.%m.%d')" >> "$GITHUB_OUTPUT"
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
