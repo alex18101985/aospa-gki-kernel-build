@@ -1,11 +1,11 @@
-name: build-kernel-ksu-susfs
+name: build-kernel-gki-ksu-susfs
 on:
   workflow_dispatch:
 env:
   JOBS: 4
   CLANG_DIR: clang-r510928
 jobs:
-  build-ksu-susfs:
+  build-gki-ksu-susfs:
     runs-on: ubuntu-22.04
     steps:
       - name: Free disk space
