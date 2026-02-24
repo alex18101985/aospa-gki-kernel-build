@@ -112,8 +112,7 @@ function m() {
         LDFLAGS="-Wl,--thinlto-cache-dir=$(pwd)/out/thinlto-cache" \
         DTC_EXT="$PREBUILTS_DIR/bin/dtc" \
         DTC_OVERLAY_TEST_EXT="$PREBUILTS_DIR/bin/ufdt_apply_overlay" \
-        TARGET_PRODUCT=$TARGET \
-        $@ || exit $?
+        TARGET_PRODUCT=$TARGET $@ || exit $?
 }
 
 function get_trees_rev() {
@@ -135,7 +134,7 @@ $DO_CLEAN && (
 )
 
 mkdir -p out
-mkdir -p out/thinlto-cache   # ThinLTO cache directory
+mkdir -p out/thinlto-cache
 # export LOCALVERSION="$(get_trees_rev)"
 
 echo -e "Generating config...\n"
@@ -177,14 +176,19 @@ $ONLY_CONFIG && exit
 
 echo -e "\nBuilding kernel...\n"
 m Image modules dtbs
-echo -e "\nChecking ThinLTO usage...\n"
+echo -e "\nChecking ThinLTO usage..."
 
-if [ -d out/thinlto-cache ] && [ "$(ls -A out/thinlto-cache 2>/dev/null)" ]; then
-    echo "ThinLTO cache detected -> ThinLTO is ACTIVE"
-else
-    echo "WARNING: ThinLTO cache is empty!"
+grep -q "CONFIG_LTO_CLANG_THIN=y" out/.config || {
+    echo "ERROR: ThinLTO not enabled in config"
     exit 1
+}
+
+if grep -q "LTO" out/.version 2>/dev/null; then
+    echo "LTO detected"
 fi
+
+count=$(find out/thinlto-cache -type f 2>/dev/null | wc -l)
+echo "ThinLTO cache files: $count (optional)"
 rm -rf out/modules out/*.ko
 m INSTALL_MOD_PATH=modules INSTALL_MOD_STRIP=1 modules_install
 
