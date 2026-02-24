@@ -97,7 +97,7 @@ jobs:
           export LLVM_IAS=1
           export CC=clang
           export LD=ld.lld
-          export KCFLAGS="-O2 -mcpu=generic -mtune=cortex-x2 -fomit-frame-pointer"
+          export KCFLAGS="-O2 -mcpu=cortex-x2 -mtune=cortex-x2 -fomit-frame-pointer"
           export KCPPFLAGS="-O2"
           export KBUILD_BUILD_USER=adithya
           export KBUILD_BUILD_HOST=android-build
