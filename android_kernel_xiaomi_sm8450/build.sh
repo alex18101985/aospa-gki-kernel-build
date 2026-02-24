@@ -109,7 +109,6 @@ function m() {
     make -j$(nproc --all) O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 \
         KCFLAGS="-O2 -pipe" \
         KCPPFLAGS="-O2" \
-        LDFLAGS="-Wl,--thinlto-cache-dir=$(pwd)/out/thinlto-cache" \
         DTC_EXT="$PREBUILTS_DIR/bin/dtc" \
         DTC_OVERLAY_TEST_EXT="$PREBUILTS_DIR/bin/ufdt_apply_overlay" \
         TARGET_PRODUCT=$TARGET $@ || exit $?
@@ -134,41 +133,30 @@ $DO_CLEAN && (
 )
 
 mkdir -p out
-mkdir -p out/thinlto-cache
 # export LOCALVERSION="$(get_trees_rev)"
 
 echo -e "Generating config...\n"
-
-# Base config
 m $DEFCONFIG
-
-# Merge vendor configs
 m ./scripts/kconfig/merge_config.sh $DEFCONFIGS vendor/${TARGET}_GKI.config
-
-# Apply version
 scripts/config --file out/.config \
     --set-str LOCALVERSION "-$BRANCH-marble-ksu-susfs" \
     -d LOCALVERSION_AUTO
-
 echo -e "\nForcing ThinLTO...\n"
 scripts/config --file out/.config \
     -d LTO_NONE \
     -d LTO_CLANG_FULL \
     -e LTO_CLANG \
     -e LTO_CLANG_THIN
-
 m olddefconfig
 
 echo -e "\nChecking LTO configuration...\n"
-
 grep CONFIG_LTO out/.config
-
 if grep -q "CONFIG_LTO_CLANG=y" out/.config && \
    grep -q "CONFIG_LTO_CLANG_THIN=y" out/.config && \
    ! grep -q "CONFIG_LTO_NONE=y" out/.config; then
-    echo "ThinLTO: ENABLED"
+    echo "ThinLTO: enabled"
 else
-    echo "ERROR: ThinLTO NOT ENABLED"
+    echo "ThinLTO: disabled"
     exit 1
 fi
 
@@ -176,19 +164,6 @@ $ONLY_CONFIG && exit
 
 echo -e "\nBuilding kernel...\n"
 m Image modules dtbs
-echo -e "\nChecking ThinLTO usage..."
-
-grep -q "CONFIG_LTO_CLANG_THIN=y" out/.config || {
-    echo "ERROR: ThinLTO not enabled in config"
-    exit 1
-}
-
-if grep -q "LTO" out/.version 2>/dev/null; then
-    echo "LTO detected"
-fi
-
-count=$(find out/thinlto-cache -type f 2>/dev/null | wc -l)
-echo "ThinLTO cache files: $count (optional)"
 rm -rf out/modules out/*.ko
 m INSTALL_MOD_PATH=modules INSTALL_MOD_STRIP=1 modules_install
 
