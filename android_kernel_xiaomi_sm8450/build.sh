@@ -144,7 +144,7 @@ echo -e "Generating config...\n"
 m $DEFCONFIG
 
 # Merge vendor configs
-m ./scripts/kconfig/merge_config.sh $DEFCONFIGS vendor/${TARGET}_GKI.config
+./scripts/kconfig/merge_config.sh -O out out/.config $DEFCONFIGS vendor/${TARGET}_GKI.config
 
 # Apply version
 scripts/config --file out/.config \
