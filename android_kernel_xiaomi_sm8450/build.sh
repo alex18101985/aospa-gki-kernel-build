@@ -97,7 +97,7 @@ export PATH="$TC_DIR/bin:$PREBUILTS_DIR/bin:$PATH"
 
 function m() {
     make -j$(nproc --all) O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 \
-        KBUILD_BUILD_USER=alex KBUILD_BUILD_HOST=github-build \
+        KBUILD_BUILD_USER=alex KBUILD_BUILD_HOST=marble-build \
         KCFLAGS="-O2 -pipe" \
         KCPPFLAGS="-O2" \
         LDFLAGS="-Wl,--thinlto-jobs=$(nproc --all)" \
