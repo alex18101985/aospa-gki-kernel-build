@@ -144,6 +144,17 @@ $NO_LTO && (
         --set-str LOCALVERSION "-${BRANCH}-nolto" \
         -d LTO_CLANG_FULL -e LTO_NONE
     echo -e "\nDisabled LTO!"
+    
+    if [ "$NO_LTO" = false ]; then
+        echo -e "\nEnabling ThinLTO..."
+        scripts/config --file out/.config \
+            -d LTO_NONE \
+            -d LTO_CLANG_FULL \
+            -e LTO_CLANG_THIN \
+            -e THINLTO \
+            --set-val LTO_CLANG_THIN_LEVEL 3 \
+            -e LTO_CLANG_THIN_LINKTIME
+    fi
 )
 
 $ONLY_CONFIG && exit
