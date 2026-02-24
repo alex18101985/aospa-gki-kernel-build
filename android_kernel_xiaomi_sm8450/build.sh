@@ -151,35 +151,25 @@ scripts/config --file out/.config \
     --set-str LOCALVERSION "-$BRANCH-marble-ksu-susfs" \
     -d LOCALVERSION_AUTO
 
-# === Enable ThinLTO (recommended for SM8450) ===
+echo -e "\nForcing ThinLTO...\n"
 scripts/config --file out/.config \
-    -e LTO_CLANG \
-    -d LTO_CLANG_FULL \
     -d LTO_NONE \
-    -e THINLTO
+    -d LTO_CLANG_FULL \
+    -e LTO_CLANG \
+    -e LTO_CLANG_THIN
 
-# Disable LTO if requested
-if [ "$NO_LTO" = true ]; then
-    scripts/config --file out/.config \
-        --set-str LOCALVERSION "-${BRANCH}-marble-ksu-susfs-nolto" \
-        -d LTO_CLANG \
-        -d LTO_CLANG_FULL \
-        -d THINLTO \
-        -e LTO_NONE
-    echo -e "\nDisabled LTO!"
-fi
-
-# Finalize config (IMPORTANT)
 m olddefconfig
 
 echo -e "\nChecking LTO configuration...\n"
 
 grep CONFIG_LTO out/.config
 
-if grep -q "CONFIG_THINLTO=y" out/.config; then
+if grep -q "CONFIG_LTO_CLANG=y" out/.config && \
+   grep -q "CONFIG_LTO_CLANG_THIN=y" out/.config && \
+   ! grep -q "CONFIG_LTO_NONE=y" out/.config; then
     echo "ThinLTO: ENABLED"
 else
-    echo "ThinLTO: NOT ENABLED"
+    echo "ERROR: ThinLTO NOT ENABLED"
     exit 1
 fi
 
