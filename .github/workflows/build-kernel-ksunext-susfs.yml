@@ -39,15 +39,15 @@ jobs:
       - name: Clone repo and sync
         run: |
           repo init -u https://github.com/alex18101985/aospa-gki-kernel-build -b "$(git -C aospa-gki-kernel-build branch --show-current)" -m manifest.xml --depth=1
-          repo sync
+          repo sync -c -j$(nproc) --force-sync
           mkdir -p kernel_platform/device/xiaomi/marble-kernel/dtbs
       - name: Cache Clang
         uses: actions/cache@v4
         with:
           path: kernel_platform/clang
-          key: ${{ runner.os }}-clang-${{ env.CLANG_DIR }}
+          key: clang-r510928
           restore-keys: |
-            ${{ runner.os }}-clang-
+            clang-r510928
       - name: Setup Clang
         run: |
           mkdir -p kernel_platform/clang
