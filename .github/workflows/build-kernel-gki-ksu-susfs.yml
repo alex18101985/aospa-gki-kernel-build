@@ -63,7 +63,7 @@ jobs:
       - name: Include KernelSU (Stable)
         run: |
           cd kernel_platform/xiaomi/sm8450
-          rmdir KernelSU
+          rm -rf KernelSU drivers/kernelsu drivers/KernelSU
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
       - name: Include SuSFS (2.0.0)
         run: |
