@@ -64,7 +64,10 @@ jobs:
         run: |
           cd kernel_platform/xiaomi/sm8450
           rm -rf KernelSU drivers/kernelsu drivers/KernelSU
-          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
+          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
+          cd KernelSU
+          git fetch origin
+          git checkout 2d54667
       - name: Include SuSFS (2.0.0)
         run: |
           HOME="$(pwd)"
