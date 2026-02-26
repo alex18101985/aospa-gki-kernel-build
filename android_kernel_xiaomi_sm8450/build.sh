@@ -138,18 +138,7 @@ scripts/config --file out/.config \
     -e LTO_CLANG \
     -e LTO_CLANG_THIN \
     -e CC_OPTIMIZE_FOR_PERFORMANCE \
-    -d CC_OPTIMIZE_FOR_SIZE \
-    -d CFI \
-    -d CFI_CLANG \
-    -d SHADOW_CALL_STACK \
-    -d DEBUG_KERNEL \
-    -d DEBUG_INFO \
-    -d DEBUG_INFO_DWARF4 \
-    -d DEBUG_INFO_DWARF5 \
-    -d KASAN \
-    -d KCSAN \
-    -d UBSAN \
-    -d SLUB_DEBUG
+    -d CC_OPTIMIZE_FOR_SIZE
 m olddefconfig
 
 $ONLY_CONFIG && exit
