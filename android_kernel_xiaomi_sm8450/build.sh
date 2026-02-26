@@ -98,6 +98,8 @@ export PATH="$TC_DIR/bin:$PREBUILTS_DIR/bin:$PATH"
 function m() {
     make -j$(nproc --all) O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 \
         KBUILD_BUILD_USER=alex KBUILD_BUILD_HOST=github-build \
+        KCFLAGS="-O2 -pipe" \
+        KCPPFLAGS="-O2"
         DTC_EXT="$PREBUILTS_DIR/bin/dtc" \
         DTC_OVERLAY_TEST_EXT="$PREBUILTS_DIR/bin/ufdt_apply_overlay" \
         TARGET_PRODUCT=$TARGET $@ || exit $?
@@ -135,6 +137,19 @@ scripts/config --file out/.config \
     -d LTO_CLANG_FULL \
     -e LTO_CLANG \
     -e LTO_CLANG_THIN \
+    -e CC_OPTIMIZE_FOR_PERFORMANCE \
+    -d CC_OPTIMIZE_FOR_SIZE \
+    -d CFI \
+    -d CFI_CLANG \
+    -d SHADOW_CALL_STACK \
+    -d DEBUG_KERNEL \
+    -d DEBUG_INFO \
+    -d DEBUG_INFO_DWARF4 \
+    -d DEBUG_INFO_DWARF5 \
+    -d KASAN \
+    -d KCSAN \
+    -d UBSAN \
+    -d SLUB_DEBUG
 m olddefconfig
 
 $ONLY_CONFIG && exit
