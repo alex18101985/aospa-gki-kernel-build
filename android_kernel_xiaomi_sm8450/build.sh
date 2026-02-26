@@ -98,8 +98,6 @@ export PATH="$TC_DIR/bin:$PREBUILTS_DIR/bin:$PATH"
 function m() {
     make -j$(nproc --all) O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 \
         KBUILD_BUILD_USER=alex KBUILD_BUILD_HOST=github-build \
-        KCFLAGS="-O2 -pipe" \
-        KCPPFLAGS="-O2" \
         LDFLAGS="-Wl,--thinlto-jobs=$(nproc --all)" \
         DTC_EXT="$PREBUILTS_DIR/bin/dtc" \
         DTC_OVERLAY_TEST_EXT="$PREBUILTS_DIR/bin/ufdt_apply_overlay" \
@@ -130,7 +128,7 @@ echo -e "Generating config...\n"
 m $DEFCONFIG
 m ./scripts/kconfig/merge_config.sh $DEFCONFIGS vendor/${TARGET}_GKI.config
 scripts/config --file out/.config \
-    --set-str LOCALVERSION "-$BRANCH-gki-marble" \
+    --set-str LOCALVERSION "-Vauxite-Marble-KSU-SuSFS" \
     -d LOCALVERSION_AUTO
 echo -e "\nForcing ThinLTO...\n"
 scripts/config --file out/.config \
