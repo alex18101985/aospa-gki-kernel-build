@@ -135,6 +135,8 @@ scripts/config --file out/.config \
     -d LTO_CLANG_FULL \
     -e LTO_CLANG \
     -e LTO_CLANG_THIN \
+    -e CC_OPTIMIZE_FOR_PERFORMANCE \
+    -d CC_OPTIMIZE_FOR_SIZE
 m olddefconfig
 
 $ONLY_CONFIG && exit
