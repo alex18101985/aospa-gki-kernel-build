@@ -139,6 +139,7 @@ scripts/config --file out/.config \
     -e LTO_CLANG_THIN \
     -e CC_OPTIMIZE_FOR_PERFORMANCE \
     -d CC_OPTIMIZE_FOR_SIZE \
+    -e DEBUG_KERNEL \
     -d DEBUG_INFO \
     -d DEBUG_INFO_DWARF4 \
     -d DEBUG_INFO_DWARF5 \
