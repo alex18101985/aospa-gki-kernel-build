@@ -143,19 +143,12 @@ scripts/config --file out/.config \
     -d DEBUG_INFO \
     -d DEBUG_INFO_DWARF4 \
     -d DEBUG_INFO_DWARF5 \
-    -d GDB_SCRIPTS \
-    -d FRAME_POINTER \
     -d SLUB_DEBUG \
-    -d PAGE_OWNER \
-    -d DEBUG_SPINLOCK \
-    -d DEBUG_MUTEXES \
     -d LOCKDEP \
-    -d KASAN \
-    -d KCSAN \
-    -d UBSAN
+    -d KASAN
 m olddefconfig
 
-grep -E "LTO|OPTIMIZE|KASAN|LOCKDEP|DEBUG_INFO|SLUB_DEBUG" out/.config
+grep -E "LTO|OPTIMIZE|KASAN|LOCKDEP|CONFIG_LOCKDEP|DEBUG_INFO|SLUB_DEBUG|CONFIG_KFENCE|CONFIG_BPF|CONFIG_FTRACE|CONFIG_FUNCTION_TRACER" out/.config
 
 $ONLY_CONFIG && exit
 
