@@ -5,7 +5,7 @@ env:
   CLANG_DIR: clang-r547379
 jobs:
   build-gki-ksu-susfs:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
 #      - name: Free disk space
 #        if: ${{ true }}
