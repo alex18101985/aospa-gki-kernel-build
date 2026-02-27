@@ -96,7 +96,7 @@ esac
 export PATH="$TC_DIR/bin:$PREBUILTS_DIR/bin:$PATH"
 
 function m() {
-    make -j$(nproc --all) O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 \
+    make -j2 O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 \
         KBUILD_BUILD_USER=alex KBUILD_BUILD_HOST=github-build \
         KCFLAGS="-pipe" \
         LDFLAGS="-Wl,--thinlto-jobs=2" \
