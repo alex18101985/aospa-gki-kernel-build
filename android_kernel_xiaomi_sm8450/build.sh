@@ -139,7 +139,11 @@ scripts/config --file out/.config \
     -e LTO_CLANG_THIN \
     -e CC_OPTIMIZE_FOR_PERFORMANCE \
     -d CC_OPTIMIZE_FOR_SIZE \
-    -d DEBUG_KERNEL \
+    -d DEBUG_INFO \
+    -d DEBUG_INFO_DWARF4 \
+    -d DEBUG_INFO_DWARF5 \
+    -d GDB_SCRIPTS \
+    -d FRAME_POINTER \
     -d SLUB_DEBUG \
     -d PAGE_OWNER \
     -d DEBUG_SPINLOCK \
@@ -150,7 +154,7 @@ scripts/config --file out/.config \
     -d UBSAN
 m olddefconfig
 
-grep -E "LTO|OPTIMIZE|DEBUG_KERNEL" out/.config
+grep -E "LTO|OPTIMIZE|KASAN|LOCKDEP|DEBUG_INFO|SLUB_DEBUG" out/.config
 
 $ONLY_CONFIG && exit
 
