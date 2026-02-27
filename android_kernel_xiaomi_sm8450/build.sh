@@ -98,7 +98,7 @@ export PATH="$TC_DIR/bin:$PREBUILTS_DIR/bin:$PATH"
 function m() {
     make -j$(nproc --all) O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 \
         KBUILD_BUILD_USER=alex KBUILD_BUILD_HOST=github-build \
-        KCFLAGS="-pipe"
+        KCFLAGS="-pipe" \
         LDFLAGS="-Wl,--threads --thinlto-jobs=$(nproc --all)" \
         DTC_EXT="$PREBUILTS_DIR/bin/dtc" \
         DTC_OVERLAY_TEST_EXT="$PREBUILTS_DIR/bin/ufdt_apply_overlay" \
@@ -131,7 +131,7 @@ m ./scripts/kconfig/merge_config.sh $DEFCONFIGS vendor/${TARGET}_GKI.config
 scripts/config --file out/.config \
     --set-str LOCALVERSION "-Vauxite-Marble-KSU-SuSFS" \
     -d LOCALVERSION_AUTO
-echo -e "\nForcing ThinLTO...\n"
+echo -e "\nForcing ThinLTO + Performance...\n"
 scripts/config --file out/.config \
     -d LTO_NONE \
     -d LTO_CLANG_FULL \
@@ -149,6 +149,8 @@ scripts/config --file out/.config \
     -d KCSAN \
     -d UBSAN
 m olddefconfig
+
+grep -E "LTO|OPTIMIZE|DEBUG_KERNEL" out/.config
 
 $ONLY_CONFIG && exit
 
