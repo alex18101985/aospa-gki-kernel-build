@@ -98,6 +98,7 @@ export PATH="$TC_DIR/bin:$PREBUILTS_DIR/bin:$PATH"
 function m() {
     make -j$(nproc --all) O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 \
         KBUILD_BUILD_USER=alex KBUILD_BUILD_HOST=github-build \
+        KCFLAGS="-pipe"
         LDFLAGS="-Wl,--threads --thinlto-jobs=$(nproc --all)" \
         DTC_EXT="$PREBUILTS_DIR/bin/dtc" \
         DTC_OVERLAY_TEST_EXT="$PREBUILTS_DIR/bin/ufdt_apply_overlay" \
@@ -137,7 +138,16 @@ scripts/config --file out/.config \
     -e LTO_CLANG \
     -e LTO_CLANG_THIN \
     -e CC_OPTIMIZE_FOR_PERFORMANCE \
-    -d CC_OPTIMIZE_FOR_SIZE
+    -d CC_OPTIMIZE_FOR_SIZE \
+    -d DEBUG_KERNEL \
+    -d SLUB_DEBUG \
+    -d PAGE_OWNER \
+    -d DEBUG_SPINLOCK \
+    -d DEBUG_MUTEXES \
+    -d LOCKDEP \
+    -d KASAN \
+    -d KCSAN \
+    -d UBSAN
 m olddefconfig
 
 $ONLY_CONFIG && exit
