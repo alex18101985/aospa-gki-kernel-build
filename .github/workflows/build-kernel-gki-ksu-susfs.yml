@@ -2,7 +2,7 @@ name: build-kernel-gki-ksu-susfs
 on:
   workflow_dispatch:
 env:
-  CLANG_DIR: clang-r522817
+  CLANG_DIR: clang-r547379
 jobs:
   build-gki-ksu-susfs:
     runs-on: ubuntu-22.04
@@ -44,7 +44,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: kernel_platform/clang
-          key: clang-r522817
+          key: clang-r547379
       - name: Setup Clang
         run: |
           mkdir -p kernel_platform/clang
