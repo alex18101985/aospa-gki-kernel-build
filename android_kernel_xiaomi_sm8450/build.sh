@@ -31,7 +31,7 @@ while [ $# -gt 0 ]; do
         -k | --only-kernel) ONLY_KERNEL=true ;;
         -d | --only-dtb) ONLY_DTB=true ;;
         -m | --only-modules) ONLY_MODULES=true ;;
-		--ksu-only) ONLY_KSU=true ;;
+		--only-ksu) ONLY_KSU=true ;;
         *) TARGET="$1" ;;
     esac
     shift
