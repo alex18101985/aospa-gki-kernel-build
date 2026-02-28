@@ -1,10 +1,10 @@
-name: build-modules
+name: build-ksu-module
 on:
   workflow_dispatch:
 env:
   CLANG_DIR: clang-r510928
 jobs:
-  build-modules:
+  build-ksu-module:
     runs-on: ubuntu-22.04
     steps:
 #      - name: Free disk space
@@ -73,7 +73,7 @@ jobs:
           cp -rvf aospa-gki-kernel-build/android_kernel_xiaomi_sm8450/. kernel_platform/xiaomi/sm8450
           cd kernel_platform/xiaomi/sm8450
           patch -p1 < no-strict-error.patch
-      - name: Build kernel modules
+      - name: Build KernelSU module
         run: |
           cd kernel_platform/xiaomi/sm8450
           export PATH=$PWD/kernel_platform/clang/${CLANG_DIR}/bin:$PATH
