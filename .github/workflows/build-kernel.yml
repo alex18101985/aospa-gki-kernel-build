@@ -7,17 +7,17 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - name: Free disk space
-        if: ${{ true }}
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: false
+#      - name: Free disk space
+#        if: ${{ true }}
+#        uses: jlumbroso/free-disk-space@main
+#        with:
+#          tool-cache: true
+#          android: true
+#          dotnet: true
+#          haskell: true
+#          large-packages: true
+#          docker-images: true
+#          swap-storage: false
       - name: Set swap space
         uses: pierotofy/set-swap-space@master
         with:
@@ -37,7 +37,7 @@ jobs:
           sudo chmod a+rx /usr/local/bin/repo
       - name: Clone repo and sync
         run: |
-          repo init -u https://github.com/bryanyee33/aospa-gki-kernel-build -b "$(git -C aospa-gki-kernel-build branch --show-current)" -m manifest.xml --depth=1
+          repo init -u https://github.com/alex18101985/aospa-gki-kernel-build -b "$(git -C aospa-gki-kernel-build branch --show-current)" -m manifest.xml --depth=1
           repo sync
           mkdir -p kernel_platform/device/xiaomi/marble-kernel/dtbs
       - name: Cache Clang
