@@ -275,11 +275,14 @@ elif $ONLY_MODULES; then build_modules
 elif $ONLY_KSU; then
     echo_i "Building KernelSU only..."
 
+    m gki_defconfig
+    m ./scripts/kconfig/merge_config.sh $DEFCONFIGS vendor/${TARGET}_GKI.confi
     m olddefconfig
 
     m prepare
     m scripts
     m modules_prepare
+	m modules
 
     m M=drivers/kernelsu modules
 
