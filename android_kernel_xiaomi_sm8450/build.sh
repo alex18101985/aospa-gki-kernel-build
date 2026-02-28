@@ -100,7 +100,7 @@ function m() {
         KBUILD_BUILD_USER=alex KBUILD_BUILD_HOST=github-build \
         KCFLAGS="-pipe" \
         KCPPFLAGS="-pipe" \
-        LDFLAGS="-Wl,--threads" \
+        LDFLAGS="-Wl,--threads -Wl,--thinlto-jobs=$(nproc --all)" \
         DTC_EXT="$PREBUILTS_DIR/bin/dtc" \
         DTC_OVERLAY_TEST_EXT="$PREBUILTS_DIR/bin/ufdt_apply_overlay" \
         TARGET_PRODUCT=$TARGET $@ || exit $?
@@ -131,13 +131,17 @@ m $DEFCONFIG
 m ./scripts/kconfig/merge_config.sh $DEFCONFIGS vendor/${TARGET}_GKI.config
 scripts/config --file out/.config \
     --set-str LOCALVERSION "-AOSPA-Vauxite-Marble-KSU-SuSFS" \
-    -d LOCALVERSION_AUTO
-$NO_LTO && (
-    scripts/config --file out/.config \
-        --set-str LOCALVERSION "-AOSPA-Vauxite-Marble-KSU-SuSFS-noLTO" \
-        -d LTO_CLANG_FULL -e LTO_NONE
-    echo -e "\nDisabled LTO!"
-)
+    -d LOCALVERSION_AUTO \
+    -d LTO_NONE \
+    -d LTO_CLANG_FULL \
+    -e LTO_CLANG \
+    -e LTO_CLANG_THIN \
+    -e CC_OPTIMIZE_FOR_PERFORMANCE \
+    -d CC_OPTIMIZE_FOR_SIZE
+    
+m olddefconfig
+
+grep -E "CONFIG_LTO|CONFIG_CC_OPTIMIZE" out/.config
 
 $ONLY_CONFIG && exit
 
