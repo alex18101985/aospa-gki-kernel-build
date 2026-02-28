@@ -1,4 +1,4 @@
-name: build-kernel-gki-ksu-susfs
+name: build-kernel
 on:
   workflow_dispatch:
 env:
