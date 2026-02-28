@@ -39,9 +39,9 @@ jobs:
         run: |
           repo init -u https://github.com/alex18101985/aospa-gki-kernel-build -b "$(git -C aospa-gki-kernel-build branch --show-current)" -m manifest.xml --depth=1
           for i in {1..3}; do
-          echo "Repo sync attempt $i..."
-          repo sync -j2 --fail-fast && break
-          sleep 15
+            echo "Repo sync attempt $i..."
+            repo sync -c -j2 --fail-fast --no-tags --no-clone-bundle && break
+            sleep 15
           done
           mkdir -p kernel_platform/device/xiaomi/marble-kernel/dtbs
       - name: Cache Clang
