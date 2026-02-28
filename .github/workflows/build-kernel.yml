@@ -4,8 +4,8 @@ on:
 env:
   CLANG_DIR: clang-r584948b
 jobs:
-  build-gki-ksu-susfs:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-22.04
     steps:
 #      - name: Free disk space
 #        if: ${{ true }}
