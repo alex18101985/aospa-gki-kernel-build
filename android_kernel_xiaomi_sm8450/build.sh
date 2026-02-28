@@ -130,7 +130,7 @@ echo -e "Generating config...\n"
 m $DEFCONFIG
 m ./scripts/kconfig/merge_config.sh $DEFCONFIGS vendor/${TARGET}_GKI.config
 scripts/config --file out/.config \
-    --set-str LOCALVERSION "-Vauxite-Marble-KSU-SuSFS" \
+    --set-str LOCALVERSION "-AOSPA-Vauxite-Marble-KSU-SuSFS" \
     -d LOCALVERSION_AUTO
 echo -e "\nForcing ThinLTO + Performance...\n"
 scripts/config --file out/.config \
