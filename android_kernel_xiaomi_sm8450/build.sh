@@ -96,11 +96,11 @@ esac
 export PATH="$TC_DIR/bin:$PREBUILTS_DIR/bin:$PATH"
 
 function m() {
-    make -j2 O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 \
+    make -j$(nproc --all) O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 LD=ld.lld \
         KBUILD_BUILD_USER=alex KBUILD_BUILD_HOST=github-build \
-        KCFLAGS="-pipe" \
-        KCPPFLAGS="-pipe" \
-        LDFLAGS="-Wl,--thinlto-jobs=2" \
+        KCFLAGS="-O2 -pipe" \
+        KCPPFLAGS="-O2 -pipe" \
+        LDFLAGS="-Wl,--threads -Wl,--thinlto-jobs=$(nproc --all)" \
         DTC_EXT="$PREBUILTS_DIR/bin/dtc" \
         DTC_OVERLAY_TEST_EXT="$PREBUILTS_DIR/bin/ufdt_apply_overlay" \
         TARGET_PRODUCT=$TARGET $@ || exit $?
@@ -139,7 +139,7 @@ scripts/config --file out/.config \
     -e LTO_CLANG \
     -e LTO_CLANG_THIN \
     -e CC_OPTIMIZE_FOR_PERFORMANCE \
-    -d CC_OPTIMIZE_FOR_SIZE \
+    -d CC_OPTIMIZE_FOR_SIZE
 m olddefconfig
 
 $ONLY_CONFIG && exit
