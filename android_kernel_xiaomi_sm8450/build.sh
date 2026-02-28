@@ -282,6 +282,9 @@ elif $ONLY_KSU; then
     m modules_prepare
 
     m M=drivers/kernelsu modules
+
+	cp out/drivers/kernelsu/kernelsu.ko out/kernelsu.ko
+    echo_i "KernelSU built: out/kernelsu.ko"
 else {
     build_kernel
     build_modules
