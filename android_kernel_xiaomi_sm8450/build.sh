@@ -137,26 +137,6 @@ build_kernel() {
     echo_i "Copied kernel to $KERNEL_COPY_TO."
 }
 
-build_ksu_only() {
-    echo_i "Preparing kernel..."
-
-    m prepare
-    m scripts
-    m modules_prepare
-
-    echo_i "Building KernelSU module..."
-    m M=drivers/kernelsu modules
-
-    ksu_path="$(find out -name 'kernelsu.ko' -print -quit)"
-    if [ -n "$ksu_path" ]; then
-        cp "$ksu_path" out/kernelsu.ko
-        echo_i "Copied to out/kernelsu.ko"
-    else
-        echo_e "Unable to locate kernelsu.ko!"
-        exit 1
-    fi
-}
-
 build_modules() {
     echo_i "Building kernel modules..."
     m modules
@@ -292,7 +272,15 @@ $ONLY_CONFIG && exit
 if $ONLY_KERNEL; then build_kernel
 elif $ONLY_DTB; then build_dtbs
 elif $ONLY_MODULES; then build_modules
-elif $ONLY_KSU; then build_ksu_only
+elif $ONLY_KSU; then
+    echo_i "Building KernelSU only..."
+
+    m prepare
+    m scripts
+    m modules_prepare
+    m M=drivers/kernelsu modules
+
+    cp out/drivers/kernelsu/kernelsu.ko out/kernelsu.ko
 else {
     build_kernel
     build_modules
