@@ -1,10 +1,7 @@
-# AOSPA GKI Kernel
+# AOSPA Kernel
 ## Differences from stock AOSPA kernel:
-- Added KernelSU
-- Added SuSFS
-- Added support for unofficial version of KernelSU manager (backslashxx)
+- Added KernelSU (LKM)
 - Added Westwood TCP (set as default)
-- Built with Clang r510928
 
 <p>&nbsp;</p>
 
