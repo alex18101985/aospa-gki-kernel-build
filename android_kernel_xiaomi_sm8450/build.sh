@@ -142,6 +142,8 @@ scripts/config --file out/.config \
     -d CC_OPTIMIZE_FOR_SIZE
 m olddefconfig
 
+grep -E "CONFIG_LTO|CONFIG_CC_OPTIMIZE" out/.config
+
 $ONLY_CONFIG && exit
 
 echo -e "\nBuilding kernel...\n"
