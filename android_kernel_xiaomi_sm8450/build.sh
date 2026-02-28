@@ -138,6 +138,12 @@ build_kernel() {
 }
 
 build_ksu() {
+    echo_i "Preparing kernel for external modules..."
+
+    m prepare
+    m scripts
+    m modules_prepare
+
     echo_i "Building KernelSU module only..."
 
     m M=drivers/kernelsu modules
