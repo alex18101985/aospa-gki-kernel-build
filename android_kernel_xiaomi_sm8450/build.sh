@@ -18,6 +18,7 @@ ONLY_CONFIG=false
 ONLY_KERNEL=false
 ONLY_DTB=false
 ONLY_MODULES=false
+ONLY_KSU=false
 TARGET=
 DTB_WILDCARD="*"
 DTBO_WILDCARD="*"
@@ -30,6 +31,7 @@ while [ $# -gt 0 ]; do
         -k | --only-kernel) ONLY_KERNEL=true ;;
         -d | --only-dtb) ONLY_DTB=true ;;
         -m | --only-modules) ONLY_MODULES=true ;;
+		--ksu-only) ONLY_KSU=true ;;
         *) TARGET="$1" ;;
     esac
     shift
@@ -133,6 +135,21 @@ build_kernel() {
     m Image
     cp out/arch/arm64/boot/Image $KERNEL_COPY_TO
     echo_i "Copied kernel to $KERNEL_COPY_TO."
+}
+
+build_ksu() {
+    echo_i "Building KernelSU module only..."
+
+    m M=drivers/kernelsu modules
+
+    ksu_path="$(find out -name 'kernelsu.ko' -print -quit)"
+    if [ -n "$ksu_path" ]; then
+        cp "$ksu_path" out/kernelsu.ko
+        echo_i "Copied to out/kernelsu.ko"
+    else
+        echo_e "Unable to locate kernelsu.ko!"
+        exit 1
+    fi
 }
 
 build_modules() {
@@ -267,14 +284,20 @@ $NO_LTO && {
 
 $ONLY_CONFIG && exit
 
-if $ONLY_KERNEL; then build_kernel
-elif $ONLY_DTB; then build_dtbs
-elif $ONLY_MODULES; then build_modules
+if $ONLY_CONFIG; then
+    exit
+elif $ONLY_KSU; then
+    build_ksu
+elif $ONLY_KERNEL; then
+    build_kernel
+elif $ONLY_DTB; then
+    build_dtbs
+elif $ONLY_MODULES; then
+    build_modules
 else {
     build_kernel
     build_modules
     build_dtbs
 }; fi
-
 
 echo_i "Completed in $((SECONDS / 60)) minute(s) and $((SECONDS % 60)) second(s) !"
