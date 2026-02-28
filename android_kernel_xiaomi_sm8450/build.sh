@@ -282,6 +282,7 @@ elif $ONLY_KSU; then
     m prepare
     m scripts
     m modules_prepare
+	m vmlinux
 
     m M=drivers/kernelsu modules
 
