@@ -18,6 +18,7 @@ ONLY_CONFIG=false
 ONLY_KERNEL=false
 ONLY_DTB=false
 ONLY_MODULES=false
+ONLY_KSU=false
 TARGET=
 DTB_WILDCARD="*"
 DTBO_WILDCARD="*"
@@ -30,6 +31,7 @@ while [ $# -gt 0 ]; do
         -k | --only-kernel) ONLY_KERNEL=true ;;
         -d | --only-dtb) ONLY_DTB=true ;;
         -m | --only-modules) ONLY_MODULES=true ;;
+		--only-ksu) ONLY_KSU=true ;;
         *) TARGET="$1" ;;
     esac
     shift
@@ -238,6 +240,37 @@ build_dtbs() {
     echo_i "Generated dtbo.img to $DTBO_COPY_TO".
 }
 
+build_only_ksu() {
+    echo_i "Mode: KernelSU only"
+	
+    echo_i "Preparing kernel..."
+
+    m $DEFCONFIG
+	scripts/config --file out/.config -m CONFIG_KSU
+    m olddefconfig
+
+    grep CONFIG_KSU out/.config
+
+    echo_i "Preparing build environment..."
+    m prepare
+    m scripts
+    m modules_prepare
+
+    echo_i "Building KernelSU module..."
+    m M=drivers/kernelsu modules
+
+    ksu_path="$(find out -path '*/drivers/kernelsu/kernelsu.ko' -print -quit)"
+
+    if [ -n "$ksu_path" ]; then
+        cp "$ksu_path" out/kernelsu.ko
+        echo_i "KernelSU built: out/kernelsu.ko"
+    else
+        echo_e "kernelsu.ko not found!"
+        find out -name '*.ko'
+        exit 1
+    fi
+}
+
 ##
 ## Main logic starts here
 ##
@@ -274,7 +307,8 @@ grep -q "^CONFIG_KSU=m" out/.config || { echo "Config invalid"; exit 1; }
 
 $ONLY_CONFIG && exit
 
-if $ONLY_KERNEL; then build_kernel
+if $ONLY_KSU; then build_only_ksu
+elif $ONLY_KERNEL; then build_kernel
 elif $ONLY_DTB; then build_dtbs
 elif $ONLY_MODULES; then build_modules
 else {
