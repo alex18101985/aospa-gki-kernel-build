@@ -290,14 +290,14 @@ echo_i "Generating config..."
 m $DEFCONFIG
 m ./scripts/kconfig/merge_config.sh $DEFCONFIGS vendor/${TARGET}_GKI.config
 scripts/config --file out/.config \
-    --set-str LOCALVERSION "-AOSPA-Vauxite-Marble" \
+    --set-str LOCALVERSION "-AOSPA-Vauxite-KSU" \
 	-e CC_OPTIMIZE_FOR_PERFORMANCE \
     -d CC_OPTIMIZE_FOR_SIZE \
     -d LOCALVERSION_AUTO \
 	-m CONFIG_KSU
 $NO_LTO && {
     scripts/config --file out/.config \
-        --set-str LOCALVERSION "-AOSPA-Vauxite-Marble-noLTO" \
+        --set-str LOCALVERSION "-AOSPA-Vauxite-KSU-noLTO" \
         -d LTO_CLANG_FULL -e LTO_NONE
     echo_i "Disabled LTO!"
 }
