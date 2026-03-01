@@ -137,23 +137,29 @@ build_kernel() {
     echo_i "Copied kernel to $KERNEL_COPY_TO."
 }
 
-build_ksu_only() {
-    m gki_defconfig
-    m ./scripts/kconfig/merge_config.sh $DEFCONFIGS vendor/${TARGET}_GKI.config
+build_only_ksu() {
+    echo_i "Preparing kernel for external modules..."
+
+    m $DEFCONFIG
     m olddefconfig
 
     m prepare
     m scripts
-    m modules_prepare
+	m modules_prepare
 
+    echo_i "Building vmlinux (required for Module.symvers)..."
+    m vmlinux
+
+    echo_i "Building KernelSU module..."
     m M=drivers/kernelsu modules
 
-    ksu_path="$(find out -name 'kernelsu.ko' -print -quit)"
-    if [ -n "$ksu_path" ]; then
+    ksu_path="out/drivers/kernelsu/kernelsu.ko"
+    if [ -f "$ksu_path" ]; then
         cp "$ksu_path" out/kernelsu.ko
-        echo_i "Copied to out/kernelsu.ko"
+        echo_i "KernelSU module: out/kernelsu.ko"
     else
-        echo_e "Unable to locate kernelsu.ko!"
+        echo_e "kernelsu.ko not found!"
+        find out -name kernelsu.ko
         exit 1
     fi
 }
