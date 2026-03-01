@@ -145,7 +145,6 @@ build_ksu_only() {
     m prepare
     m scripts
     m modules_prepare
-	m modules
 
     m M=drivers/kernelsu modules
 
