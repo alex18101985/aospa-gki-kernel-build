@@ -38,11 +38,7 @@ jobs:
       - name: Clone repo and sync
         run: |
           repo init -u https://github.com/alex18101985/aospa-kernel-build -b "$(git -C aospa-kernel-build branch --show-current)" -m manifest.xml --depth=1
-          for i in {1..3}; do
-            echo "Repo sync attempt $i..."
-            repo sync -c -j2 --fail-fast --no-tags --no-clone-bundle && break
-            sleep 15
-          done
+          repo sync -c -j$(nproc) --force-sync
           mkdir -p kernel_platform/device/xiaomi/marble-kernel/dtbs
       - name: Cache Clang
         uses: actions/cache@v4
