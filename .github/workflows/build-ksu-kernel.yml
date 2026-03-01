@@ -79,8 +79,13 @@ jobs:
           git clone --depth=1 -b marble https://github.com/alex18101985/AnyKernel3.git AnyKernel3-marble
           cd AnyKernel3-marble
           cp ../kernel_platform/device/xiaomi/marble-kernel/Image .
-          mkdir -p modules
-          cp ../kernel_platform/xiaomi/sm8450/out/kernelsu.ko modules/
+          mkdir -p ramdisk/lib/modules
+          cp ../kernel_platform/xiaomi/sm8450/out/kernelsu.ko ramdisk/lib/modules/
+          if [ ! -f ramdisk/lib/modules/modules.load ]; then
+            echo "kernelsu.ko" > ramdisk/lib/modules/modules.load
+          else
+            echo "kernelsu.ko" >> ramdisk/lib/modules/modules.load
+          fi
           rm -r .git README.md
           find . -type f -name 'placeholder' -delete
           find . -type d -empty -delete
