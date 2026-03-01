@@ -151,6 +151,7 @@ build_only_ksu() {
     m prepare
     m scripts
     m modules_prepare
+	m security/selinux/include
 
     echo_i "Building KernelSU module only..."
     m M=drivers/kernelsu modules
