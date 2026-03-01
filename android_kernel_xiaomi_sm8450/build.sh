@@ -145,7 +145,7 @@ build_only_ksu() {
 
     m prepare
     m scripts
-	m modules_prepare
+    m security/selinux/include/flask.h
 
     echo_i "Building vmlinux (required for Module.symvers)..."
     m vmlinux
