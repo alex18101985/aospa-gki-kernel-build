@@ -81,3 +81,10 @@ jobs:
           path: kernel_platform/device/xiaomi/marble-kernel/Image
           if-no-files-found: error
           compression-level: 9
+      - name: Upload module artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernelsu-module
+          path: kernel_platform/xiaomi/sm8450/out/kernelsu.ko
+          if-no-files-found: error
+          compression-level: 9
