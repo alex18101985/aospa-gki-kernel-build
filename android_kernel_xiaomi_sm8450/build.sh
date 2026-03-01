@@ -138,28 +138,39 @@ build_kernel() {
 }
 
 build_only_ksu() {
-    echo_i "Preparing kernel for external modules..."
+    echo_i "Preparing kernel for KernelSU module..."
 
-    m $DEFCONFIG
-    m olddefconfig
+    export ARCH=arm64
+    export LLVM=1
+    export LLVM_IAS=1
 
-    m prepare
-    m scripts
-    m security/selinux/include/flask.h
+    m O=out $DEFCONFIG
+    m O=out olddefconfig
+
+    m -j$(nproc) O=out prepare
+    m -j$(nproc) O=out scripts
+    m -j$(nproc) O=out modules_prepare
 
     echo_i "Building vmlinux (required for Module.symvers)..."
-    m vmlinux
+    m -j$(nproc) O=out vmlinux
+
+    if [ ! -f out/Module.symvers ]; then
+        echo_e "Module.symvers missing!"
+        exit 1
+    fi
 
     echo_i "Building KernelSU module..."
-    m M=drivers/kernelsu modules
+    m -j$(nproc) O=out M=drivers/kernelsu modules
 
     ksu_path="out/drivers/kernelsu/kernelsu.ko"
+
     if [ -f "$ksu_path" ]; then
         cp "$ksu_path" out/kernelsu.ko
         echo_i "KernelSU module: out/kernelsu.ko"
     else
         echo_e "kernelsu.ko not found!"
-        find out -name kernelsu.ko
+        echo "Search results:"
+        find out -name "kernelsu.ko"
         exit 1
     fi
 }
