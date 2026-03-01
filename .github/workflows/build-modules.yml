@@ -82,6 +82,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: marble-kernelsu-module
-          path: kernel_platform/xiaomi/sm8450/out/drivers/kernelsu/kernelsu.ko
+          path: |
+            **/kernelsu.ko
           if-no-files-found: error
           compression-level: 9
