@@ -82,5 +82,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: marble-kernelsu-module
-          path: "**/kernelsu.ko"
+          path: kernel_platform/xiaomi/sm8450/out/kernelsu.ko
           compression-level: 9
