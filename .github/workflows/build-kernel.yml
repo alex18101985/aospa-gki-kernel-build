@@ -24,7 +24,7 @@ jobs:
           swap-size-gb: 10
       - uses: actions/checkout@v6
         with:
-          path: aospa-gki-kernel-build
+          path: aospa-kernel-build
       - name: Setup Python
         uses: actions/setup-python@v5 
         with:
