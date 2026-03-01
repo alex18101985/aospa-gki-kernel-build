@@ -249,9 +249,10 @@ build_only_ksu() {
 	scripts/config --file out/.config \
         -e CONFIG_SECURITY \
         -e CONFIG_SECURITY_SELINUX \
-        -m CONFIG_KSU
     m olddefconfig
 
+    grep CONFIG_SECURITY out/.config
+	grep CONFIG_SECURITY_SELINUX out/.config
     grep CONFIG_KSU out/.config
 
     echo_i "Preparing build environment..."
@@ -259,8 +260,8 @@ build_only_ksu() {
     m scripts
     m modules_prepare
 
-	echo_i "Installing kernel headers (generates SELinux flask.h)..."
-    m headers_install
+	echo_i "Generating SELinux headers..."
+    m -C security/selinux headers
 
     echo_i "Building KernelSU module..."
     m M=drivers/kernelsu modules
