@@ -18,7 +18,6 @@ ONLY_CONFIG=false
 ONLY_KERNEL=false
 ONLY_DTB=false
 ONLY_MODULES=false
-ONLY_KSU=false
 TARGET=
 DTB_WILDCARD="*"
 DTBO_WILDCARD="*"
@@ -31,7 +30,6 @@ while [ $# -gt 0 ]; do
         -k | --only-kernel) ONLY_KERNEL=true ;;
         -d | --only-dtb) ONLY_DTB=true ;;
         -m | --only-modules) ONLY_MODULES=true ;;
-		--only-ksu) ONLY_KSU=true ;;
         *) TARGET="$1" ;;
     esac
     shift
@@ -240,39 +238,6 @@ build_dtbs() {
     echo_i "Generated dtbo.img to $DTBO_COPY_TO".
 }
 
-build_only_ksu() {
-    echo_i "Preparing kernel..."
-
-    m $DEFCONFIG
-    m olddefconfig
-
-    scripts/config --file out/.config -m CONFIG_KSU
-
-    grep CONFIG_KSU out/.config
-
-    echo_i "Preparing build environment..."
-    m prepare
-    m scripts
-    m modules_prepare
-
-	echo_i "Generating required headers (modules build)..."
-    m modules
-
-    echo_i "Building KernelSU module..."
-    m M=drivers/kernelsu modules
-
-    ksu_path="$(find out -path '*/drivers/kernelsu/kernelsu.ko' -print -quit)"
-
-    if [ -n "$ksu_path" ]; then
-        cp "$ksu_path" out/kernelsu.ko
-        echo_i "KernelSU built: out/kernelsu.ko"
-    else
-        echo_e "kernelsu.ko not found!"
-        find out -name '*.ko'
-        exit 1
-    fi
-}
-
 ##
 ## Main logic starts here
 ##
@@ -290,14 +255,14 @@ echo_i "Generating config..."
 m $DEFCONFIG
 m ./scripts/kconfig/merge_config.sh $DEFCONFIGS vendor/${TARGET}_GKI.config
 scripts/config --file out/.config \
-    --set-str LOCALVERSION "-AOSPA-Vauxite-KSU" \
+    --set-str LOCALVERSION "-AOSPA-Vauxite-Marble" \
 	-e CC_OPTIMIZE_FOR_PERFORMANCE \
     -d CC_OPTIMIZE_FOR_SIZE \
     -d LOCALVERSION_AUTO \
 	-m CONFIG_KSU
 $NO_LTO && {
     scripts/config --file out/.config \
-        --set-str LOCALVERSION "-AOSPA-Vauxite-KSU-noLTO" \
+        --set-str LOCALVERSION "-AOSPA-Vauxite-Marble-noLTO" \
         -d LTO_CLANG_FULL -e LTO_NONE
     echo_i "Disabled LTO!"
 }
@@ -309,8 +274,7 @@ grep -q "^CONFIG_KSU=m" out/.config || { echo "Config invalid"; exit 1; }
 
 $ONLY_CONFIG && exit
 
-if $ONLY_KSU; then build_only_ksu
-elif $ONLY_KERNEL; then build_kernel
+if $ONLY_KERNEL; then build_kernel
 elif $ONLY_DTB; then build_dtbs
 elif $ONLY_MODULES; then build_modules
 else {
