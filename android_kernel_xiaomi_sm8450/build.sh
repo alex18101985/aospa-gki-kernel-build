@@ -246,7 +246,10 @@ build_only_ksu() {
     echo_i "Preparing kernel..."
 
     m $DEFCONFIG
-	scripts/config --file out/.config -m CONFIG_KSU
+	scripts/config --file out/.config \
+        -e CONFIG_SECURITY \
+        -e CONFIG_SECURITY_SELINUX \
+        -m CONFIG_KSU
     m olddefconfig
 
     grep CONFIG_KSU out/.config
@@ -256,8 +259,8 @@ build_only_ksu() {
     m scripts
     m modules_prepare
 
-	echo_i "Generating SELinux headers..."
-    m security/selinux
+	echo_i "Installing kernel headers (generates SELinux flask.h)..."
+    m headers_install
 
     echo_i "Building KernelSU module..."
     m M=drivers/kernelsu modules
