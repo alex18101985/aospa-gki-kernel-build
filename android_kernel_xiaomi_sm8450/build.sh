@@ -18,7 +18,6 @@ ONLY_CONFIG=false
 ONLY_KERNEL=false
 ONLY_DTB=false
 ONLY_MODULES=false
-ONLY_KSU=false
 TARGET=
 DTB_WILDCARD="*"
 DTBO_WILDCARD="*"
@@ -31,7 +30,6 @@ while [ $# -gt 0 ]; do
         -k | --only-kernel) ONLY_KERNEL=true ;;
         -d | --only-dtb) ONLY_DTB=true ;;
         -m | --only-modules) ONLY_MODULES=true ;;
-		--only-ksu) ONLY_KSU=true ;;
         *) TARGET="$1" ;;
     esac
     shift
@@ -257,42 +255,28 @@ echo_i "Generating config..."
 m $DEFCONFIG
 m ./scripts/kconfig/merge_config.sh $DEFCONFIGS vendor/${TARGET}_GKI.config
 scripts/config --file out/.config \
-    --set-str LOCALVERSION "-AOSPA-Vauxite-Marble-KSU" \
+    --set-str LOCALVERSION "-AOSPA-Vauxite-Marble" \
+	-e CC_OPTIMIZE_FOR_PERFORMANCE \
+    -d CC_OPTIMIZE_FOR_SIZE \
     -d LOCALVERSION_AUTO \
 	-m CONFIG_KSU
 $NO_LTO && {
     scripts/config --file out/.config \
-        --set-str LOCALVERSION "-AOSPA-Vauxite-Marble-KSU-noLTO" \
+        --set-str LOCALVERSION "-AOSPA-Vauxite-Marble-noLTO" \
         -d LTO_CLANG_FULL -e LTO_NONE
     echo_i "Disabled LTO!"
 }
+
+grep -q "^CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y" out/.config && \
+grep -q "^# CONFIG_CC_OPTIMIZE_FOR_SIZE is not set" out/.config && \
+grep -q "^# CONFIG_LOCALVERSION_AUTO is not set" out/.config && \
+grep -q "^CONFIG_KSU=m" out/.config || { echo "Config invalid"; exit 1; }
 
 $ONLY_CONFIG && exit
 
 if $ONLY_KERNEL; then build_kernel
 elif $ONLY_DTB; then build_dtbs
 elif $ONLY_MODULES; then build_modules
-elif $ONLY_KSU; then
-    echo_i "Building KernelSU only..."
-
-    m $DEFCONFIG
-    m ./scripts/kconfig/merge_config.sh $DEFCONFIGS vendor/${TARGET}_GKI.config
-    m olddefconfig
-
-    m prepare
-    m scripts
-    m modules_prepare
-	m vmlinux
-	
-    m M=drivers/kernelsu modules
-
-    ksu_path=$(find out -type f -name "*.ko" | grep kernelsu -i | head -n1)
-
-    if [ -z "$ksu_path" ]; then
-    ksu_path=$(find out -type f -name "ksu.ko" | head -n1)
-    fi
-
-    cp "$ksu_path" out/kernelsu.ko
 else {
     build_kernel
     build_modules
