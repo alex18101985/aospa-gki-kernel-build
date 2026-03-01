@@ -137,36 +137,6 @@ build_kernel() {
     echo_i "Copied kernel to $KERNEL_COPY_TO."
 }
 
-build_only_ksu() {
-    echo_i "Preparing kernel (no vmlinux)..."
-
-    m $DEFCONFIG
-
-    scripts/config --file out/.config \
-    -m CONFIG_KSU \
-    -d CONFIG_MODVERSIONS
-
-	m olddefconfig
-
-    m prepare
-    m scripts
-    m modules_prepare
-	m security/selinux/include
-
-    echo_i "Building KernelSU module only..."
-    m M=drivers/kernelsu modules
-
-    ksu_path="out/drivers/kernelsu/kernelsu.ko"
-    if [ -f "$ksu_path" ]; then
-        cp "$ksu_path" out/kernelsu.ko
-        echo_i "KernelSU module: out/kernelsu.ko"
-    else
-        echo_e "kernelsu.ko not found!"
-        find out -name kernelsu.ko
-        exit 1
-    fi
-}
-
 build_modules() {
     echo_i "Building kernel modules..."
     m modules
@@ -302,7 +272,15 @@ $ONLY_CONFIG && exit
 if $ONLY_KERNEL; then build_kernel
 elif $ONLY_DTB; then build_dtbs
 elif $ONLY_MODULES; then build_modules
-elif $ONLY_KSU; then build_only_ksu
+elif $ONLY_KSU; then
+    echo_i "Building KernelSU only..."
+
+    m prepare
+    m scripts
+    m modules_prepare
+    m M=drivers/kernelsu modules
+
+    cp out/drivers/kernelsu/kernelsu.ko out/kernelsu.ko
 else {
     build_kernel
     build_modules
