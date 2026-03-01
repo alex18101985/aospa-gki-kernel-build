@@ -299,7 +299,7 @@ $ONLY_CONFIG && exit
 if $ONLY_KERNEL; then build_kernel
 elif $ONLY_DTB; then build_dtbs
 elif $ONLY_MODULES; then build_modules
-elif $ONLY_KSU; then build_ksu_only
+elif $ONLY_KSU; then build_only_ksu
 else {
     build_kernel
     build_modules
