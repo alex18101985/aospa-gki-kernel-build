@@ -80,7 +80,7 @@ jobs:
       - name: Upload KernelSU module artifact
         uses: actions/upload-artifact@v4
         with:
-          name: kernelsu-module
+          name: ksu-module
           path: kernel_platform/xiaomi/sm8450/out/kernelsu.ko
           if-no-files-found: error
           compression-level: 9
