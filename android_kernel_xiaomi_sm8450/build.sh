@@ -241,19 +241,13 @@ build_dtbs() {
 }
 
 build_only_ksu() {
-    echo_i "Mode: KernelSU only"
-	
     echo_i "Preparing kernel..."
 
     m $DEFCONFIG
-	scripts/config --file out/.config \
-        -e CONFIG_SECURITY \
-        -e CONFIG_SECURITY_SELINUX \
-		-m CONFIG_KSU
     m olddefconfig
 
-    grep CONFIG_SECURITY out/.config
-	grep CONFIG_SECURITY_SELINUX out/.config
+    scripts/config --file out/.config -m CONFIG_KSU
+
     grep CONFIG_KSU out/.config
 
     echo_i "Preparing build environment..."
@@ -261,8 +255,8 @@ build_only_ksu() {
     m scripts
     m modules_prepare
 
-	echo_i "Generating SELinux headers..."
-    m -C security/selinux headers
+	echo_i "Generating required headers (modules build)..."
+    m modules
 
     echo_i "Building KernelSU module..."
     m M=drivers/kernelsu modules
