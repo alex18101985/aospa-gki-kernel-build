@@ -79,29 +79,24 @@ jobs:
           git clone --depth=1 -b marble https://github.com/alex18101985/AnyKernel3.git AnyKernel3-marble
           cd AnyKernel3-marble
           cp ../kernel_platform/device/xiaomi/marble-kernel/Image .
+          mkdir -p modules
+          cp ../kernel_platform/xiaomi/sm8450/out/kernelsu.ko modules/
           rm -r .git README.md
           find . -type f -name 'placeholder' -delete
           find . -type d -empty -delete
-          zip -r9 "../aospa-vauxite-kernel.zip" *
+          zip -r9 "../aospa-vauxite-ksu.zip" *
           cd ..
       - name: Generate release tag
         id: tag
-        run: echo "release_tag=AOSPA_Vauxite_Kernel_$(date +'%Y.%m.%d_%H%M')" >> "$GITHUB_OUTPUT"
+        run: echo "release_tag=AOSPA_Vauxite_KSU_$(date +'%Y.%m.%d_%H%M')" >> "$GITHUB_OUTPUT"
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.release_tag }}
           files: |
-            aospa-vauxite-kernel.zip
+            aospa-vauxite-ksu.zip
       - name: Upload kernel artifact
         uses: actions/upload-artifact@v4
         with:
-          name: aospa-vauxite-kernel
+          name: aospa-vauxite-ksu
           path: AnyKernel3-marble/*
-      - name: Upload KernelSU module artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: kernelsu-module
-          path: kernel_platform/xiaomi/sm8450/out/kernelsu.ko
-          if-no-files-found: error
-          compression-level: 9
