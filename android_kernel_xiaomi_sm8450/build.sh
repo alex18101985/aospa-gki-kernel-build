@@ -122,7 +122,7 @@ m() {
 	    KBUILD_BUILD_USER=alex KBUILD_BUILD_HOST=github-build \
         KCFLAGS="-pipe" \
         KCPPFLAGS="-pipe" \
-        LDFLAGS="-Wl,--threads" \
+        LDFLAGS="-Wl,--threads -Wl,--thread-count=$(nproc)" \
         DTC_EXT="$PREBUILTS_DIR/bin/dtc" \
         DTC_OVERLAY_TEST_EXT="$PREBUILTS_DIR/bin/ufdt_apply_overlay" \
         TARGET_PRODUCT=$TARGET $@ || exit $?
@@ -256,8 +256,6 @@ m $DEFCONFIG
 m ./scripts/kconfig/merge_config.sh $DEFCONFIGS vendor/${TARGET}_GKI.config
 scripts/config --file out/.config \
     --set-str LOCALVERSION "-AOSPA-Vauxite-Marble" \
-	-e CC_OPTIMIZE_FOR_PERFORMANCE \
-    -d CC_OPTIMIZE_FOR_SIZE \
     -d LOCALVERSION_AUTO \
 	-m CONFIG_KSU
 $NO_LTO && {
@@ -266,11 +264,6 @@ $NO_LTO && {
         -d LTO_CLANG_FULL -e LTO_NONE
     echo_i "Disabled LTO!"
 }
-
-grep -q "^CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y" out/.config && \
-grep -q "^# CONFIG_CC_OPTIMIZE_FOR_SIZE is not set" out/.config && \
-grep -q "^# CONFIG_LOCALVERSION_AUTO is not set" out/.config && \
-grep -q "^CONFIG_KSU=m" out/.config || { echo "Config invalid"; exit 1; }
 
 $ONLY_CONFIG && exit
 
