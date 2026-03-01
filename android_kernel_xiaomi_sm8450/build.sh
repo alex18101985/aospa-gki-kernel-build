@@ -284,8 +284,13 @@ elif $ONLY_KSU; then
     m modules_prepare
     m M=drivers/kernelsu modules
 
-    cp out/drivers/kernelsu/kernelsu.ko out/kernelsu.ko
-    echo_i "KernelSU built: out/kernelsu.ko"
+    ksu_path=$(find out -type f -name "*.ko" | grep kernelsu -i | head -n1)
+
+    if [ -z "$ksu_path" ]; then
+    ksu_path=$(find out -type f -name "ksu.ko" | head -n1)
+    fi
+
+    cp "$ksu_path" out/kernelsu.ko
 else {
     build_kernel
     build_modules
