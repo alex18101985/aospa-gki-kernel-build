@@ -138,39 +138,30 @@ build_kernel() {
 }
 
 build_only_ksu() {
-    echo_i "Preparing kernel for KernelSU module..."
+    echo_i "Preparing kernel (no vmlinux)..."
 
-    export ARCH=arm64
-    export LLVM=1
-    export LLVM_IAS=1
+    m $DEFCONFIG
 
-    m O=out $DEFCONFIG
-    m O=out olddefconfig
+    scripts/config --file out/.config \
+    -m CONFIG_KSU \
+    -d CONFIG_MODVERSIONS
 
-    m -j$(nproc) O=out prepare
-    m -j$(nproc) O=out scripts
-    m -j$(nproc) O=out modules_prepare
+	m olddefconfig
 
-    echo_i "Building vmlinux (required for Module.symvers)..."
-    m -j$(nproc) O=out vmlinux
+    m prepare
+    m scripts
+    m modules_prepare
 
-    if [ ! -f out/Module.symvers ]; then
-        echo_e "Module.symvers missing!"
-        exit 1
-    fi
-
-    echo_i "Building KernelSU module..."
-    m -j$(nproc) O=out M=drivers/kernelsu modules
+    echo_i "Building KernelSU module only..."
+    m M=drivers/kernelsu modules
 
     ksu_path="out/drivers/kernelsu/kernelsu.ko"
-
     if [ -f "$ksu_path" ]; then
         cp "$ksu_path" out/kernelsu.ko
         echo_i "KernelSU module: out/kernelsu.ko"
     else
         echo_e "kernelsu.ko not found!"
-        echo "Search results:"
-        find out -name "kernelsu.ko"
+        find out -name kernelsu.ko
         exit 1
     fi
 }
