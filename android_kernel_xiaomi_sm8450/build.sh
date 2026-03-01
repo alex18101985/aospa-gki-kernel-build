@@ -249,6 +249,7 @@ build_only_ksu() {
 	scripts/config --file out/.config \
         -e CONFIG_SECURITY \
         -e CONFIG_SECURITY_SELINUX \
+		-m CONFIG_KSU
     m olddefconfig
 
     grep CONFIG_SECURITY out/.config
