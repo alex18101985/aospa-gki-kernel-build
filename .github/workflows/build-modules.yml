@@ -1,11 +1,11 @@
-name: build-ksu-module
+name: build-modules
 on:
   workflow_dispatch:
 env:
-  CLANG_DIR: clang-r584948b
+  CLANG_DIR: clang-r522817
 jobs:
-  build-ksu-module:
-    runs-on: ubuntu-latest
+  build-modules:
+    runs-on: ubuntu-22.04
     steps:
 #      - name: Free disk space
 #        if: ${{ true }}
@@ -21,7 +21,7 @@ jobs:
       - name: Set swap space
         uses: pierotofy/set-swap-space@master
         with:
-          swap-size-gb: 16
+          swap-size-gb: 10
       - uses: actions/checkout@v6
         with:
           path: aospa-kernel-build
@@ -44,7 +44,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: kernel_platform/clang
-          key: clang-r584948b
+          key: clang-r522817
       - name: Setup Clang
         run: |
           mkdir -p kernel_platform/clang
