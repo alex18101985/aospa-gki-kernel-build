@@ -78,9 +78,25 @@ jobs:
           cd kernel_platform/xiaomi/sm8450
           export PATH=$PWD/kernel_platform/clang/${CLANG_DIR}/bin:$PATH
           ./build.sh marble --only-ksu
+      - name: Prepare KernelSU module
+        run: |
+          cd kernel_platform/xiaomi/sm8450
+
+          echo "Searching KernelSU module..."
+          KSU=$(find out -type f \( -name "ksu.ko" -o -name "kernelsu.ko" \) | head -n1)
+
+          if [ -z "$KSU" ]; then
+            echo "KernelSU module not found!"
+            find out -name "*.ko"
+            exit 1
+          fi
+
+          cp "$KSU" out/kernelsu.ko
+          echo "KernelSU ready at out/kernelsu.ko"
       - name: Upload KernelSU module
         uses: actions/upload-artifact@v4
         with:
           name: marble-kernelsu-module
           path: kernel_platform/xiaomi/sm8450/out/kernelsu.ko
+          if-no-files-found: error
           compression-level: 9
