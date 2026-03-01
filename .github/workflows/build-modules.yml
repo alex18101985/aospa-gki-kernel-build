@@ -77,6 +77,7 @@ jobs:
           export ARCH=arm64
           export LLVM=1
           export LLVM_IAS=1
+          export LD=ld.lld
 
           make O=out marble_defconfig
           scripts/config --file out/.config -m CONFIG_KSU
