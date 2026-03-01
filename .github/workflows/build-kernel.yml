@@ -79,7 +79,7 @@ jobs:
           curl https://github.com/Pzqqt/android_kernel_xiaomi_marble/commit/3e043c16430a95f6d328f5396c14ec18a52ab10a.patch > clang.patch
           sed -i 's/drivers/sm8450\/drivers/g' clang.patch
           sed -i 's/techpack\/display/sm8450-modules\/qcom\/opensource\/display-drivers/g' clang.patch
-          patch -p1 < clang.patch 
+          patch -p1 < clang.patch
       - name: Build kernel
         run: |
           cd kernel_platform/xiaomi/sm8450
