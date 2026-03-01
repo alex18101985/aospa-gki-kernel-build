@@ -82,7 +82,7 @@ jobs:
         run: |
           git clone --depth=1 -b marble https://github.com/alex18101985/AnyKernel3.git AnyKernel3-marble
           cd AnyKernel3-marble
-          cp ../kernel_platform/device/xiaomi/aospa-vauxite-kernel/Image .
+          cp ../kernel_platform/device/xiaomi/marble-kernel/Image .
           rm -r .git README.md
           find . -type f -name 'placeholder' -delete
           find . -type d -empty -delete
