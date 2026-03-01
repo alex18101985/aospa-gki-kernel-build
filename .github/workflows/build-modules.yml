@@ -51,7 +51,7 @@ jobs:
           cd kernel_platform/clang
           if [ ! -d "${CLANG_DIR}" ]; then
             echo "Clang not found in cache. Downloading..."
-            git clone -n --depth=1 --filter=tree:0 -b main-kernel --single-branch \
+            git clone -n --depth=1 --filter=tree:0 -b main --single-branch \
               https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 .
             git sparse-checkout init --cone
             git sparse-checkout set ${CLANG_DIR}
