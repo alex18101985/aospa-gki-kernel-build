@@ -1,11 +1,11 @@
-name: build-ksu-kernel
+name: build-kernel
 on:
   workflow_dispatch:
 env:
-  CLANG_DIR: clang-r584948b
+  CLANG_DIR: clang-r522817
 jobs:
-  build-ksu-kernel:
-    runs-on: ubuntu-latest
+  build-kernel:
+    runs-on: ubuntu-22.04
     steps:
 #      - name: Free disk space
 #        if: ${{ true }}
@@ -21,7 +21,7 @@ jobs:
       - name: Set swap space
         uses: pierotofy/set-swap-space@master
         with:
-          swap-size-gb: 16
+          swap-size-gb: 10
       - uses: actions/checkout@v6
         with:
           path: aospa-kernel-build
@@ -44,14 +44,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: kernel_platform/clang
-          key: clang-r584948b
+          key: clang-r522817
       - name: Setup Clang
         run: |
           mkdir -p kernel_platform/clang
           cd kernel_platform/clang
           if [ ! -d "${CLANG_DIR}" ]; then
             echo "Clang not found in cache. Downloading..."
-            git clone -n --depth=1 --filter=tree:0 -b main-kernel --single-branch \
+            git clone -n --depth=1 --filter=tree:0 -b main --single-branch \
               https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 .
             git sparse-checkout init --cone
             git sparse-checkout set ${CLANG_DIR}
@@ -64,21 +64,11 @@ jobs:
           cd kernel_platform/xiaomi/sm8450
           rm -rf KernelSU
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
-      - name: Include personal changes
+      - name: Patch with custom configurations
         run: |
-          cp -rf aospa-kernel-build/android_kernel_xiaomi_sm8450/. kernel_platform/xiaomi/sm8450
+          cp -rvf aospa-kernel-build/android_kernel_xiaomi_sm8450/. kernel_platform/xiaomi/sm8450
           cd kernel_platform/xiaomi/sm8450
-          : # Fix clang 19 warnings
-          curl https://github.com/LineageOS/android_kernel_xiaomi_sm8450/commit/aea66fe46a3d796d4f85c5979678055438185cbd.patch > clang.patch
-          patch -p1 < clang.patch
-          : # Fix clang 21 warnings
-          curl https://github.com/Pzqqt/android_kernel_xiaomi_marble/commit/f4ae922da12b91d0b7a8109ba2851a44c61b0ba6.patch > clang.patch
-          patch -p1 < clang.patch
-          cd ..
-          curl https://github.com/Pzqqt/android_kernel_xiaomi_marble/commit/3e043c16430a95f6d328f5396c14ec18a52ab10a.patch > clang.patch
-          sed -i 's/drivers/sm8450\/drivers/g' clang.patch
-          sed -i 's/techpack\/display/sm8450-modules\/qcom\/opensource\/display-drivers/g' clang.patch
-          patch -p1 < clang.patch
+          patch -p1 < no-strict-error.patch 
       - name: Build kernel
         run: |
           cd kernel_platform/xiaomi/sm8450
@@ -99,19 +89,19 @@ jobs:
           rm -r .git README.md
           find . -type f -name 'placeholder' -delete
           find . -type d -empty -delete
-          zip -r9 "../aospa-vauxite-ksu.zip" *
+          zip -r9 "../aospa-vauxite-marble-kernel.zip" *
           cd ..
       - name: Generate release tag
         id: tag
-        run: echo "release_tag=AOSPA_Vauxite_KSU_$(date +'%Y.%m.%d_%H%M')" >> "$GITHUB_OUTPUT"
+        run: echo "release_tag=AOSPA_Vauxite_Marble_$(date +'%Y.%m.%d_%H%M')" >> "$GITHUB_OUTPUT"
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.release_tag }}
           files: |
-            aospa-vauxite-ksu.zip
+            aospa-vauxite-marble-kernel.zip
       - name: Upload kernel artifact
         uses: actions/upload-artifact@v4
         with:
-          name: aospa-vauxite-ksu
+          name: aospa-vauxite-marble-kernel
           path: AnyKernel3-marble/*
