@@ -256,6 +256,9 @@ build_only_ksu() {
     m scripts
     m modules_prepare
 
+	echo_i "Generating SELinux headers..."
+    m security/selinux/include/flask.h
+
     echo_i "Building KernelSU module..."
     m M=drivers/kernelsu modules
 
